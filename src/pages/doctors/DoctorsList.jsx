@@ -15,7 +15,6 @@ async function loadDoctors() {
 
   console.log("DATA:", data)
   console.log("ERROR:", error)
-  console.log(import.meta.env.VITE_SUPABASE_URL)
 
   if (!error) {
     setDoctors(data)
