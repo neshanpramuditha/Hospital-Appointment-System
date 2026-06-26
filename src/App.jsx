@@ -1,14 +1,7 @@
-import Clinexa from './pages/auth/Login'
-import DoctorsList from './pages/doctors/DoctorsList'
-
+import AppRoutes from "./routes/AppRoutes";
 
 function App() {
-    return (
-    <div>
-      <Clinexa/>
-    </div>
-  )
-    
+  return <AppRoutes />;
 }
 
-export default App
+export default App;
