@@ -11,7 +11,7 @@ function Patients() {
       <Route index element={<PatientsList />} />
       <Route path="add" element={<AddPatient />} />
       <Route path="edit/:id" element={<EditPatient />} />
-      <Route path="details:id" element={<PatientDetails />} />
+      <Route path="details/:id" element={<PatientDetails />} />
     </Routes>
   );
 }

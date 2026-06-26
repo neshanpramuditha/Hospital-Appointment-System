@@ -2,12 +2,14 @@ import { Routes, Route } from "react-router-dom";
 
 import dashboard from "./dashboard/Dashboard";
 
-function Patients() {
+
+
+function Dashboard() {
   return (
     <Routes>
-      <Route index element={<dashboard />} />
+      <Route index element={<Dashboard />} />
     </Routes>
   );
 }
 
-export default Patients;
+export default Dashboard;
