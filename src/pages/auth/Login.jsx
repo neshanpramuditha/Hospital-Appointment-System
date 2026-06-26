@@ -43,9 +43,7 @@ function EyeOff() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   PRIMITIVES
-═══════════════════════════════════════════════════════ */
+/* PRIMITIVES */
 
 /** Labelled form field wrapper */
 function FormField({ label, children }) {
@@ -84,7 +82,7 @@ function Input({ type = "text", placeholder, onChange }) {
   );
 }
 
-/** Password input with show/hide toggle */
+/* Password input with show/hide toggle */
 function PasswordInput({ placeholder = "••••••••", onChange }) {
   const [show, setShow] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -121,7 +119,7 @@ function PasswordInput({ placeholder = "••••••••", onChange }) {
   );
 }
 
-/** Gradient CTA button */
+/* Gradient CTA button */
 function PrimaryButton({ children }) {
   return (
     <button
@@ -140,7 +138,7 @@ function PrimaryButton({ children }) {
   );
 }
 
-/** Outlined social / OAuth button */
+/* Outlined social / OAuth button */
 function SocialButton({ children }) {
   return (
     <button
@@ -155,7 +153,7 @@ function SocialButton({ children }) {
   );
 }
 
-/** Hairline divider with centred label */
+/* Hairline divider with centred label */
 function Divider() {
   return (
     <div className="flex items-center gap-3 my-5">
@@ -166,7 +164,7 @@ function Divider() {
   );
 }
 
-/** Inline accent link-style button */
+/* Inline accent link-style button */
 function LinkBtn({ onClick, children }) {
   return (
     <button
@@ -187,9 +185,7 @@ function LinkBtn({ onClick, children }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   PASSWORD STRENGTH METER
-═══════════════════════════════════════════════════════ */
+/* PASSWORD STRENGTH METER */
 
 const STRENGTH_COLORS = ["#E24B4A", "#EF9F27", "#02C39A", "#02C39A"];
 const STRENGTH_LABELS = ["", "Weak", "Fair", "Good", "Strong"];
@@ -224,9 +220,7 @@ function StrengthMeter({ score }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   ROLE CARD
-═══════════════════════════════════════════════════════ */
+/* ROLE CARD */
 
 function RoleCard({ id, emoji, label, sub, selected, onSelect }) {
   return (
@@ -254,9 +248,7 @@ function RoleCard({ id, emoji, label, sub, selected, onSelect }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   BRAND PANEL  (desktop — hidden on mobile)
-═══════════════════════════════════════════════════════ */
+/* BRAND PANEL  (desktop — hidden on mobile) */
 
 const BRAND_FEATURES = [
   "Instant Appointment Booking",
@@ -328,9 +320,7 @@ function BrandPanel() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   MOBILE BRAND BAR  (visible only on < md)
-═══════════════════════════════════════════════════════ */
+/* MOBILE BRAND BAR  (visible only on < md) */
 
 function MobileBrandBar() {
   return (
@@ -356,9 +346,7 @@ function MobileBrandBar() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   TAB SWITCHER
-═══════════════════════════════════════════════════════ */
+/* TAB SWITCHER */
 
 function TabSwitcher({ tab, setTab }) {
   const tabs = [
@@ -393,9 +381,7 @@ function TabSwitcher({ tab, setTab }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   LOGIN VIEW
-═══════════════════════════════════════════════════════ */
+/* LOGIN VIEW */
 
 function LoginView({ onSwitch }) {
   return (
@@ -445,9 +431,7 @@ function LoginView({ onSwitch }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   REGISTER VIEW
-═══════════════════════════════════════════════════════ */
+/* REGISTER VIEW */
 
 const ROLES = [
   { id: "patient", emoji: "🧑‍⚕️", label: "Patient", sub: "Book & manage appointments" },
@@ -530,19 +514,12 @@ function RegisterView({ onSwitch }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   ROOT
-═══════════════════════════════════════════════════════ */
+/* ROOT */
 
-export default function Clinexa() {
+export default function Login() {
   const [tab, setTab] = useState("login");
 
   return (
-    /*
-     * Page wrapper — cream background from theme.
-     * On mobile: fills the full viewport (no padding, no rounding).
-     * On sm+:    centred card with padding, rounded corners, shadow.
-     */
     <div
       className="min-h-dvh flex items-start sm:items-center justify-center sm:p-4"
       style={{ background: "var(--color-background)" }}
