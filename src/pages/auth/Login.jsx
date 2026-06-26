@@ -303,7 +303,7 @@ function BrandPanel() {
       <div className="relative z-10 flex flex-col gap-2">
         {BRAND_FEATURES.map((text) => (
           <div key={text}
-            className="flex items-center gap-2 w-fit rounded-full px-4 py-[7px]"
+            className="flex items-center gap-2 w-fit rounded-full px-4 py-1.75"
             style={{
               background: "rgba(255,255,255,0.12)",
               border: "1px solid rgba(255,255,255,0.22)",
@@ -527,7 +527,7 @@ export default function Login() {
       <div
         className="
           flex flex-col md:flex-row
-          w-full sm:max-w-[920px]
+          w-full sm:max-w-230
           bg-white overflow-hidden
           sm:rounded-3xl
           min-h-dvh sm:min-h-0

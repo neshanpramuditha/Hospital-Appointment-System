@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, Pencil, Plus, Search, Trash2, UserRound } from "lucide-react";
-import { supabase } from "../../services/supabase";
+import { isSupabaseConfigured, supabase } from "../../services/supabase";
 
 function PatientsList() {
   const [patients, setPatients] = useState([]);
@@ -10,6 +10,12 @@ function PatientsList() {
 
   const fetchPatients = async () => {
     setLoading(true);
+
+    if (!isSupabaseConfigured) {
+      setPatients([]);
+      setLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from("patients")
@@ -54,7 +60,7 @@ function PatientsList() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="mb-8 rounded-3xl bg-gradient-to-r from-primary via-secondary to-accent p-8 text-white shadow-xl">
+      <div className="mb-8 rounded-3xl bg-linear-to-r from-primary via-secondary to-accent p-8 text-white shadow-xl">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="mb-2 text-sm font-medium text-white/80">
@@ -76,6 +82,12 @@ function PatientsList() {
           </Link>
         </div>
       </div>
+
+      {!isSupabaseConfigured && (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+          Supabase is not configured yet. Set the environment variables to load patient records from the database.
+        </div>
+      )}
 
       <div className="mb-6 grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl bg-white p-5 shadow-md">
@@ -157,7 +169,7 @@ function PatientsList() {
                   >
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-accent text-white">
                           <UserRound size={20} />
                         </div>
 
