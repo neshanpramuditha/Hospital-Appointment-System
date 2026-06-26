@@ -10,9 +10,9 @@ function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/doctors" element={<Doctors />} />
-        <Route path="/patients" element={<Patients />} />
-        <Route path="/appointments" element={<Appointments />} />
+        <Route path="/doctors/*" element={<Doctors />} />
+        <Route path="/patients/*" element={<Patients />} />
+        <Route path="/appointments/*" element={<Appointments />} />
       </Routes>
     </BrowserRouter>
   )
