@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Sidebar() {
+export default function AdminSidebar() {
   return (
     <div className="w-64 h-screen bg-slate-900 text-white p-5 fixed left-0 top-0 border-r border-slate-800">
       <div className="text-center mb-8">
@@ -26,4 +26,3 @@ function Sidebar() {
   );
 }
 
-export default Sidebar;

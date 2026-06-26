@@ -1,8 +1,8 @@
 import React from 'react';
-import Sidebar from '../../components/Sidebar';
 import Navbar from '../../components/Navbar';
+import AdminSidebar from '../../components/Sidebar';
 
-function Dashboard() {
+export default function AdminDashboard() {
   const totalDoctors = 12;
   const totalPatients = 145;
   const totalAppointments = 48;
@@ -10,7 +10,7 @@ function Dashboard() {
   return (
     <div className="flex bg-slate-50 min-h-screen font-sans">
 
-      <Sidebar />
+      <AdminSidebar />
       
       <div className="flex-1 ml-64 flex flex-col">
         <Navbar />
@@ -68,4 +68,3 @@ function Dashboard() {
     </div>
   );
 }
-export default Dashboard;
