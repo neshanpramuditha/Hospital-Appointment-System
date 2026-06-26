@@ -1,13 +1,11 @@
 import { Routes, Route } from "react-router-dom";
 
-import dashboard from "./dashboard/Dashboard";
-
-
+import DashboardHome from "./dashboard/Dashboard";
 
 function Dashboard() {
   return (
     <Routes>
-      <Route index element={<Dashboard />} />
+      <Route index element={<DashboardHome />} />
     </Routes>
   );
 }
