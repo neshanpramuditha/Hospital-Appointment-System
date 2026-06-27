@@ -5,6 +5,7 @@ import Patients from '../pages/Patients'
 import Appointments from '../pages/Appointments'
 import Login from '../pages/auth/Login'
 import Dashboard from '../pages/Dashboard'
+import Patient from "../pages/Patient";
 
 function AppRoutes() {
   return (
@@ -15,6 +16,7 @@ function AppRoutes() {
         <Route path="/doctors/*" element={<Doctors />} />
         <Route path="/patients/*" element={<Patients />} />
         <Route path="/appointments/*" element={<Appointments />} />
+        <Route path="/patient/*" element={<Patient />} />
       </Routes>
     </BrowserRouter>
   )
