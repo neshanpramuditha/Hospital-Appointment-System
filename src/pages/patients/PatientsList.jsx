@@ -45,7 +45,8 @@ function PatientsList() {
   }, []);
 
   const deletePatient = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this patient?")) return;
+    if (!window.confirm("Are you sure you want to delete this patient?"))
+      return;
 
     const { error } = await supabase.from("patients").delete().eq("id", id);
 
