@@ -22,11 +22,8 @@ function PatientsList() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      alert(error.message);
-    } else {
-      setPatients(data || []);
-    }
+    if (error) alert(error.message);
+    else setPatients(data || []);
 
     setLoading(false);
   };
@@ -59,23 +56,24 @@ function PatientsList() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-8 rounded-3xl bg-linear-to-r from-primary via-secondary to-accent p-8 text-white shadow-xl">
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+    <div className="mx-auto w-full max-w-5xl">
+      <div className="mb-5 rounded-2xl bg-gradient-to-r from-primary via-secondary to-accent p-5 text-white shadow-lg md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="mb-2 text-sm font-medium text-white/80">
+            <p className="mb-1 text-sm font-medium text-white/80">
               Patient Records
             </p>
-            <h1 className="text-3xl font-bold">Patients Management</h1>
-            <p className="mt-2 max-w-xl text-sm text-white/80">
-              Manage patient profiles, contact details, and appointment-related
-              patient records.
+            <h1 className="text-2xl font-bold md:text-3xl">
+              Patients Management
+            </h1>
+            <p className="mt-1 max-w-lg text-sm text-white/80">
+              Manage patient profiles and contact details.
             </p>
           </div>
 
           <Link
             to="/patients/add"
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 font-semibold text-primary shadow-lg transition hover:scale-105"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 font-semibold text-primary shadow-md transition hover:scale-105 md:w-auto"
           >
             <Plus size={18} />
             Add Patient
@@ -84,31 +82,31 @@ function PatientsList() {
       </div>
 
       {!isSupabaseConfigured && (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-          Supabase is not configured yet. Set the environment variables to load patient records from the database.
+        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+          Supabase is not configured yet. Set environment variables to load patient records.
         </div>
       )}
 
-      <div className="mb-6 grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl bg-white p-5 shadow-md">
+      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl bg-white p-4 shadow-md">
           <p className="text-sm text-gray-500">Total Patients</p>
-          <h2 className="mt-2 text-3xl font-bold text-primary">
+          <h2 className="mt-1 text-3xl font-bold text-primary">
             {patients.length}
           </h2>
         </div>
 
-        <div className="rounded-2xl bg-white p-5 shadow-md">
+        <div className="rounded-2xl bg-white p-4 shadow-md">
           <p className="text-sm text-gray-500">Registered Patients</p>
-          <h2 className="mt-2 text-3xl font-bold text-accent">
+          <h2 className="mt-1 text-3xl font-bold text-accent">
             {patients.length}
           </h2>
         </div>
       </div>
 
-      <div className="rounded-3xl bg-white p-6 shadow-xl">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="rounded-2xl bg-white p-4 shadow-lg md:p-5">
+        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-primary">Patient List</h2>
+            <h2 className="text-lg font-bold text-primary">Patient List</h2>
             <p className="text-sm text-gray-500">
               Search, view, edit, or delete patient records.
             </p>
@@ -125,39 +123,101 @@ function PatientsList() {
               placeholder="Search patient..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-11 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-11 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-gray-100">
+        <div className="grid gap-4 md:hidden">
+          {loading ? (
+            <p className="py-8 text-center text-gray-500">Loading patients...</p>
+          ) : filteredPatients.length === 0 ? (
+            <p className="py-8 text-center text-gray-500">No patients found.</p>
+          ) : (
+            filteredPatients.map((patient) => (
+              <div
+                key={patient.id}
+                className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+              >
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-white">
+                    <UserRound size={21} />
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-gray-800">
+                      {patient.full_name}
+                    </h3>
+                    <p className="text-xs text-gray-400">
+                      ID: {patient.id.slice(0, 8)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-sm text-gray-600">
+                  <p>
+                    <span className="font-semibold text-gray-700">Email:</span>{" "}
+                    {patient.email || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-gray-700">Phone:</span>{" "}
+                    {patient.phone || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-gray-700">DOB:</span>{" "}
+                    {patient.date_of_birth || "N/A"}
+                  </p>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  <Link
+                    to={`/patients/details/${patient.id}`}
+                    className="flex flex-1 items-center justify-center rounded-xl bg-accent/10 py-2 text-secondary"
+                  >
+                    <Eye size={17} />
+                  </Link>
+
+                  <Link
+                    to={`/patients/edit/${patient.id}`}
+                    className="flex flex-1 items-center justify-center rounded-xl bg-primary/10 py-2 text-primary"
+                  >
+                    <Pencil size={17} />
+                  </Link>
+
+                  <button
+                    onClick={() => deletePatient(patient.id)}
+                    className="flex flex-1 items-center justify-center rounded-xl bg-red-50 py-2 text-red-500"
+                  >
+                    <Trash2 size={17} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-xl border border-gray-100 md:block">
           <table className="w-full text-left">
             <thead className="bg-gray-50 text-sm text-gray-600">
               <tr>
-                <th className="px-5 py-4">Patient</th>
-                <th className="px-5 py-4">Email</th>
-                <th className="px-5 py-4">Phone</th>
-                <th className="px-5 py-4">Date of Birth</th>
-                <th className="px-5 py-4 text-right">Actions</th>
+                <th className="px-4 py-3">Patient</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Phone</th>
+                <th className="px-4 py-3">Date of Birth</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
                 <tr>
-                  <td
-                    colSpan="5"
-                    className="px-5 py-10 text-center text-gray-500"
-                  >
+                  <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
                     Loading patients...
                   </td>
                 </tr>
               ) : filteredPatients.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan="5"
-                    className="px-5 py-10 text-center text-gray-500"
-                  >
+                  <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
                     No patients found.
                   </td>
                 </tr>
@@ -167,10 +227,10 @@ function PatientsList() {
                     key={patient.id}
                     className="border-t border-gray-100 transition hover:bg-gray-50"
                   >
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-accent text-white">
-                          <UserRound size={20} />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-white">
+                          <UserRound size={19} />
                         </div>
 
                         <div>
@@ -184,39 +244,39 @@ function PatientsList() {
                       </div>
                     </td>
 
-                    <td className="px-5 py-4 text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-600">
                       {patient.email || "N/A"}
                     </td>
 
-                    <td className="px-5 py-4 text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-600">
                       {patient.phone || "N/A"}
                     </td>
 
-                    <td className="px-5 py-4 text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-600">
                       {patient.date_of_birth || "N/A"}
                     </td>
 
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
                         <Link
                           to={`/patients/details/${patient.id}`}
-                          className="rounded-xl bg-accent/10 p-2 text-secondary hover:bg-accent hover:text-white"
+                          className="rounded-lg bg-accent/10 p-2 text-secondary hover:bg-accent hover:text-white"
                         >
-                          <Eye size={18} />
+                          <Eye size={17} />
                         </Link>
 
                         <Link
                           to={`/patients/edit/${patient.id}`}
-                          className="rounded-xl bg-primary/10 p-2 text-primary hover:bg-primary hover:text-white"
+                          className="rounded-lg bg-primary/10 p-2 text-primary hover:bg-primary hover:text-white"
                         >
-                          <Pencil size={18} />
+                          <Pencil size={17} />
                         </Link>
 
                         <button
                           onClick={() => deletePatient(patient.id)}
-                          className="rounded-xl bg-red-50 p-2 text-red-500 hover:bg-red-500 hover:text-white"
+                          className="rounded-lg bg-red-50 p-2 text-red-500 hover:bg-red-500 hover:text-white"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={17} />
                         </button>
                       </div>
                     </td>
