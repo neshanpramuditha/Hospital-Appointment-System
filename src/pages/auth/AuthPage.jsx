@@ -4,7 +4,7 @@ import BrandPanel from "../../assets/auth/BrandPanel";
 import MobileBrandBar from "../../assets/auth/MobileBrandBar";
 import TabSwitcher from "../../assets/auth/TabSwitcher";
 
-import Login from "./Test";
+import Login from "./Login";
 import Register from "./Register";
 
 export default function AuthPage() {

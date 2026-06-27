@@ -9,9 +9,11 @@ import { supabase } from "../services/supabase";
 
 import {
   login as loginService,
+  loginWithGoogleCredential as loginWithGoogleService,
   logout as logoutService,
   registerPatient,
   getUserProfile,
+  requestPasswordReset as requestPasswordResetService,
 } from "../services/authService";
 
 const AuthContext = createContext();
@@ -27,24 +29,35 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     getSession();
 
+    if (!supabase?.auth?.onAuthStateChange) {
+      setLoading(false);
+      return undefined;
+    }
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        if (session?.user) {
-          setUser(session.user);
+        try {
+          if (session?.user) {
+            setUser(session.user);
 
-          const profile = await getUserProfile(
-            session.user.id
-          );
+            const profile = await getUserProfile(
+              session.user.id
+            );
 
-          setProfile(profile);
-        } else {
-          setUser(null);
+            setProfile(profile);
+          } else {
+            setUser(null);
+            setProfile(null);
+          }
+        } catch (err) {
+          console.error("Auth State Error:", err);
+
           setProfile(null);
+        } finally {
+          setLoading(false);
         }
-
-        setLoading(false);
       }
     );
 
@@ -52,38 +65,67 @@ export function AuthProvider({ children }) {
   }, []);
 
   // -----------------------------
-  // Current Session
+  // Get Current Session
   // -----------------------------
   async function getSession() {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    try {
+      const auth = supabase?.auth;
 
-    if (session?.user) {
-      setUser(session.user);
+      if (!auth?.getSession) {
+        setUser(null);
+        setProfile(null);
+        return;
+      }
 
-      const profile = await getUserProfile(
-        session.user.id
-      );
+      const {
+        data: { session },
+      } = await auth.getSession();
 
-      setProfile(profile);
+      if (session?.user) {
+        setUser(session.user);
+
+        const profile = await getUserProfile(
+          session.user.id
+        );
+
+        setProfile(profile);
+      }
+    } catch (err) {
+      console.error("Session Error:", err);
+
+      setUser(null);
+      setProfile(null);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   // -----------------------------
   // Register
   // -----------------------------
   async function register(data) {
-    await registerPatient(data);
+    return await registerPatient(data);
   }
 
   // -----------------------------
   // Login
   // -----------------------------
   async function login(email, password) {
-    await loginService(email, password);
+    return await loginService(email, password);
+  }
+
+  // -----------------------------
+  // Google Login
+  // -----------------------------
+  async function googleLogin(credential) {
+    return await loginWithGoogleService(credential);
+  }
+
+  // -----------------------------
+  // Reset Password
+  // -----------------------------
+  async function resetPassword(email) {
+    return await requestPasswordResetService(email);
   }
 
   // -----------------------------
@@ -105,6 +147,8 @@ export function AuthProvider({ children }) {
 
         register,
         login,
+        googleLogin,
+        resetPassword,
         logout,
 
         isAuthenticated: !!user,
