@@ -1,11 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, Pencil, Plus, Search, Trash2, UserRound } from "lucide-react";
+import {
+  Eye,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  UserRound,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 
 function PatientsList() {
   const [patients, setPatients] = useState([]);
   const [search, setSearch] = useState("");
+  const [dobFrom, setDobFrom] = useState("");
+  const [dobTo, setDobTo] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
   const [loading, setLoading] = useState(true);
 
   const fetchPatients = async () => {
@@ -45,15 +57,59 @@ function PatientsList() {
     fetchPatients();
   };
 
-  const filteredPatients = patients.filter((patient) => {
-    const keyword = search.toLowerCase();
+  const clearFilters = () => {
+    setSearch("");
+    setDobFrom("");
+    setDobTo("");
+    setSortBy("newest");
+  };
 
-    return (
-      patient.full_name?.toLowerCase().includes(keyword) ||
-      patient.email?.toLowerCase().includes(keyword) ||
-      patient.phone?.includes(search)
-    );
-  });
+  const filteredPatients = useMemo(() => {
+    let result = [...patients];
+
+    const keyword = search.trim().toLowerCase();
+
+    if (keyword) {
+      result = result.filter((patient) => {
+        return (
+          patient.full_name?.toLowerCase().includes(keyword) ||
+          patient.email?.toLowerCase().includes(keyword) ||
+          patient.phone?.includes(search.trim()) ||
+          patient.id?.toLowerCase().includes(keyword)
+        );
+      });
+    }
+
+    if (dobFrom) {
+      result = result.filter(
+        (patient) => patient.date_of_birth && patient.date_of_birth >= dobFrom
+      );
+    }
+
+    if (dobTo) {
+      result = result.filter(
+        (patient) => patient.date_of_birth && patient.date_of_birth <= dobTo
+      );
+    }
+
+    result.sort((a, b) => {
+      if (sortBy === "name_asc") {
+        return (a.full_name || "").localeCompare(b.full_name || "");
+      }
+
+      if (sortBy === "name_desc") {
+        return (b.full_name || "").localeCompare(a.full_name || "");
+      }
+
+      if (sortBy === "oldest") {
+        return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+      }
+
+      return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+    });
+
+    return result;
+  }, [patients, search, dobFrom, dobTo, sortBy]);
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -96,36 +152,84 @@ function PatientsList() {
         </div>
 
         <div className="rounded-2xl bg-white p-4 shadow-md">
-          <p className="text-sm text-gray-500">Registered Patients</p>
+          <p className="text-sm text-gray-500">Current Results</p>
           <h2 className="mt-1 text-3xl font-bold text-accent">
-            {patients.length}
+            {filteredPatients.length}
           </h2>
         </div>
       </div>
 
       <div className="rounded-2xl bg-white p-4 shadow-lg md:p-5">
-        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-primary">Patient List</h2>
-            <p className="text-sm text-gray-500">
-              Search, view, edit, or delete patient records.
-            </p>
+        <div className="mb-5">
+          <div className="mb-4 flex items-center gap-2">
+            <SlidersHorizontal size={18} className="text-primary" />
+            <div>
+              <h2 className="text-lg font-bold text-primary">
+                Search & Filters
+              </h2>
+              <p className="text-sm text-gray-500">
+                Filter by keyword, date of birth, or sorting order.
+              </p>
+            </div>
           </div>
 
-          <div className="relative w-full md:w-80">
-            <Search
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+          <div className="grid gap-3 md:grid-cols-4">
+            <div className="relative md:col-span-2">
+              <Search
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+
+              <input
+                type="text"
+                placeholder="Search name, email, phone, or ID..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-11 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+              />
+            </div>
+
+            <input
+              type="date"
+              value={dobFrom}
+              onChange={(e) => setDobFrom(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
             />
 
             <input
-              type="text"
-              placeholder="Search patient..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-11 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+              type="date"
+              value={dobTo}
+              onChange={(e) => setDobTo(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
             />
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 md:col-span-2"
+            >
+              <option value="newest">Sort: Newest First</option>
+              <option value="oldest">Sort: Oldest First</option>
+              <option value="name_asc">Sort: Name A-Z</option>
+              <option value="name_desc">Sort: Name Z-A</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 md:col-span-2"
+            >
+              <X size={17} />
+              Clear Filters
+            </button>
           </div>
+        </div>
+
+        <div className="mb-5 border-t border-gray-100 pt-5">
+          <h2 className="text-lg font-bold text-primary">Patient List</h2>
+          <p className="text-sm text-gray-500">
+            Search, view, edit, or delete patient records.
+          </p>
         </div>
 
         <div className="grid gap-4 md:hidden">
