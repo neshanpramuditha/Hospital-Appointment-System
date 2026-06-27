@@ -1,4 +1,11 @@
 import { supabase } from "./supabase";
+import { ROLES } from "../utils/roles";
+
+/*
+|--------------------------------------------------------------------------
+| Register Patient
+|--------------------------------------------------------------------------
+*/
 
 export async function registerPatient({
   firstName,
@@ -6,7 +13,7 @@ export async function registerPatient({
   email,
   password,
 }) {
-  // Register with Supabase Authentication
+  // Create authentication account
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -14,16 +21,20 @@ export async function registerPatient({
 
   if (error) throw error;
 
-  const user = data.user;
+  const authUser = data.user;
+
+  if (!authUser) {
+    throw new Error("Registration failed.");
+  }
 
   // Save user profile
   const { error: userError } = await supabase
     .from("users")
     .insert({
-      id: user.id,
+      id: authUser.id,
       full_name: `${firstName} ${lastName}`,
       email,
-      role: "patient",
+      role: ROLES.PATIENT,
     });
 
   if (userError) throw userError;
@@ -32,15 +43,20 @@ export async function registerPatient({
   const { error: patientError } = await supabase
     .from("patients")
     .insert({
-      user_id: user.id,
+      user_id: authUser.id,
     });
 
   if (patientError) throw patientError;
 
-  return user;
+  return authUser;
 }
 
-//Login function
+/*
+|--------------------------------------------------------------------------
+| Login
+|--------------------------------------------------------------------------
+*/
+
 export async function login(email, password) {
   const { data, error } =
     await supabase.auth.signInWithPassword({
@@ -53,12 +69,25 @@ export async function login(email, password) {
   return data.user;
 }
 
-// logout function
+/*
+|--------------------------------------------------------------------------
+| Logout
+|--------------------------------------------------------------------------
+*/
+
 export async function logout() {
-  await supabase.auth.signOut();
+  const { error } =
+    await supabase.auth.signOut();
+
+  if (error) throw error;
 }
 
-// Get current user function
+/*
+|--------------------------------------------------------------------------
+| Current User
+|--------------------------------------------------------------------------
+*/
+
 export async function getCurrentUser() {
   const {
     data: { user },
@@ -67,3 +96,21 @@ export async function getCurrentUser() {
   return user;
 }
 
+/*
+|--------------------------------------------------------------------------
+| User Profile
+|--------------------------------------------------------------------------
+*/
+
+export async function getUserProfile(userId) {
+  const { data, error } =
+    await supabase
+      .from("users")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+  if (error) throw error;
+
+  return data;
+}
