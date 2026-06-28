@@ -53,71 +53,75 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white font-sans selection:bg-accent selection:text-white">
+    <div className="min-h-screen bg-background font-sans selection:bg-accent selection:text-white">
 
-      {/* Navbar */}
+      {/* ── Navbar ── */}
       <nav
-        className="px-6 md:px-12 py-4 flex items-center justify-between shadow-sm relative z-50"
+        className="px-6 md:px-12 py-4 flex items-center justify-between shadow-md relative z-50 transition-all duration-300"
         style={{ background: "linear-gradient(90deg, #05668D 0%, #02C39A 100%)" }}
       >
         {/* Brand Logo Container */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/10 p-1 backdrop-blur-sm shadow-inner">
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-xl bg-white/10 p-1.5 backdrop-blur-md shadow-inner transition-transform duration-300 group-hover:scale-105">
             <img 
               src="/logo.png" 
               alt="CLINEXA Logo" 
               className="w-full h-full object-contain"
             />
           </div>
-          <span className="text-white text-xl font-bold tracking-wide">CLINEXA</span>
+          <span className="text-white text-xl font-black tracking-wider uppercase">CLINEXA</span>
+        </Link>
+
+        {/* Desktop Links (Anti-Jitter) */}
+        <div className="hidden md:flex items-center gap-8 text-white/90 text-sm font-semibold">
+          <a href="/about" className="relative py-2 transition-colors duration-200 hover:text-white group">
+            About
+            <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-center" />
+          </a>
+          
+          <a href="#" className="relative py-2 transition-colors duration-200 hover:text-white group">
+            Contact
+            <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-center" />
+          </a>
         </div>
 
-        {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8 text-white/90 text-sm font-medium">
-          <a href="#" className="hover:text-white transition-colors">Doctors</a>
-          <a href="/doctor-schedules" className="hover:text-white transition-colors">Doctor Schedules</a>
-          <a href="#" className="hover:text-white transition-colors">About</a>
-          <a href="#" className="hover:text-white transition-colors">Contact</a>
-        </div>
-
-        {/* Auth buttons */}
+        {/* Auth Buttons */}
         <div className="hidden md:flex items-center gap-3">
           <Link
             to="/register"
-            className="px-5 py-2 rounded-full bg-white text-sm font-semibold transition-all hover:opacity-90 shadow-sm"
+            className="px-5 py-2 rounded-full bg-white text-sm font-bold shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
             style={{ color: "#05668D" }}
           >
             Signup Now
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <button className="md:hidden text-white" onClick={() => setMenuOpen(!menuOpen)}>
+        {/* Mobile Hamburger */}
+        <button className="md:hidden text-white active:scale-95 transition-transform" onClick={() => setMenuOpen(!menuOpen)}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d={menuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
           </svg>
         </button>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden px-6 py-4 flex flex-col gap-3 text-sm font-medium relative z-50" style={{ background: "#05668D" }}>
-          {["Doctors", "Doctor Schedules", "About", "Contact"].map(item => (
-            <a key={item} href="#" className="text-white/90 hover:text-white">{item}</a>
+        <div className="md:hidden px-6 py-4 flex flex-col gap-3 text-sm font-medium relative z-50 animate-fadeIn" style={{ background: "#05668D" }}>
+          {["About", "Contact"].map(item => (
+            <a key={item} href="#" className="text-white/90 hover:text-white py-1">{item}</a>
           ))}
-          <div className="flex gap-3 mt-2">
-            <Link to="/login" className="px-4 py-2 rounded-full border border-white/40 text-white hover:bg-white/10">Login</Link>
-            <Link to="/register" className="px-4 py-2 rounded-full bg-white font-semibold" style={{ color: "#05668D" }}>Register</Link>
+          <div className="flex gap-3 mt-2 border-t border-white/10 pt-3">
+            <Link to="/register" className="px-4 py-2 rounded-full bg-white font-semibold text-center flex-1" style={{ color: "#05668D" }}>Signup</Link>
           </div>
         </div>
       )}
 
-      {/* HERO SECTION */}
+      {/* HERO SECTION  */}
       <section className="relative bg-white pt-10 pb-20 lg:py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           
-          {/* Left Side: Dynamic Copy Text */}
-          <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
+          {/* Left Side: Copy Text */}
+          <div className="lg:col-span-6 space-y-6 text-center lg:text-left animate-slideInLeft">
             <span
               className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase shadow-sm"
               style={{ background: "#E8F8F5", color: "#02C39A" }}
@@ -134,27 +138,20 @@ export default function HomePage() {
               Book appointments with top specialists, manage your schedules, and access hospital services - all from one place.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
+            <div className="pt-2 flex flex-col sm:flex-row justify-center lg:justify-start">
               <Link
                 to="/register"
-                className="px-8 py-4 rounded-xl text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 text-center"
+                className="w-full sm:w-auto px-10 py-4 rounded-xl text-white font-bold text-base shadow-lg hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover:-translate-y-1 text-center"
                 style={{ background: "linear-gradient(90deg, #05668D, #02C39A)" }}
               >
                 Make an Appointment
-              </Link>
-              <Link
-                to="/doctors"
-                className="px-8 py-4 rounded-xl font-bold text-sm border-2 transition-all hover:bg-gray-50 text-center"
-                style={{ color: "#05668D", borderColor: "#05668D" }}
-              >
-                Browse Doctors
               </Link>
             </div>
 
             {/* Metrics Counter Section */}
             <div className="flex gap-8 pt-6 justify-center lg:justify-start border-t border-gray-100 mt-8">
               {[["200+", "Doctors"], ["15k+", "Patients"], ["98%", "Satisfaction"]].map(([num, label]) => (
-                <div key={label}>
+                <div key={label} className="hover:scale-105 transition-transform duration-200">
                   <p className="text-2xl font-black" style={{ color: "#05668D" }}>{num}</p>
                   <p className="text-xs text-gray-400 font-semibold mt-0.5">{label}</p>
                 </div>
@@ -162,25 +159,24 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right Side: Reference Card Frame Canvas */}
-          <div className="lg:col-span-6 flex justify-center items-center relative w-full h-[460px] md:h-[520px]">
+          {/* Right Side: Visual Image Frame Layout Canvas */}
+          <div className="lg:col-span-6 flex justify-center items-center relative w-full h-[460px] md:h-[520px] animate-fadeIn">
             
-            {/* Main Geometric Shield Backplate Shape */}
+            {/* Geometric Shield Shape */}
             <div 
-              className="absolute inset-0 rounded-tl-[100px] rounded-br-[100px] rounded-tr-[24px] rounded-bl-[24px] shadow-2xl flex items-end justify-center overflow-hidden"
+              className="absolute inset-0 rounded-tl-[100px] rounded-br-[100px] rounded-tr-[24px] rounded-bl-[24px] shadow-2xl flex items-end justify-center overflow-hidden transition-all duration-500 hover:shadow-primary/10"
               style={{ background: "linear-gradient(145deg, #028090 20%, #05668D 90%)" }}
             >
-              {/* Doctor Image pulling directly from your public folder asset */}
               <div className="h-[92%] w-full flex justify-center relative">
                 <img 
                   src="/doc.png" 
                   alt="Doctor Visual Display" 
-                  className="h-full object-contain object-bottom select-none filter drop-shadow-2xl z-10"
+                  className="h-full object-contain object-bottom select-none filter drop-shadow-2xl z-10 transition-transform duration-500 hover:scale-[1.02]"
                 />
               </div>
 
               {/* Functional Next Arrow Floating Badge */}
-              <div className="absolute top-8 right-8 bg-white p-3 rounded-2xl shadow-lg transition-transform hover:scale-110 cursor-pointer hidden sm:block">
+              <div className="absolute top-8 right-8 bg-white p-3 rounded-2xl shadow-lg transition-transform hover:scale-110 active:scale-95 cursor-pointer hidden sm:block">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5 text-gray-800">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
@@ -188,15 +184,15 @@ export default function HomePage() {
             </div>
 
             {/* Overlapping Floating Appointment Detail Card Block */}
-            <div className="absolute bottom-[-15px] right-[-10px] bg-white p-5 rounded-3xl shadow-2xl w-[240px] border border-gray-100/80 z-20 transition-transform hover:scale-105">
+            <div className="absolute bottom-[-15px] right-[-10px] bg-white p-5 rounded-3xl shadow-2xl w-[240px] border border-gray-100/80 z-20 transition-all duration-300 hover:scale-105 hover:-translate-y-1">
               <div className="flex flex-col items-center text-center space-y-3">
                 
-                {/* Circular Profile Avatar Thumbnail with Crop Frame */}
-                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-accent/40 bg-gray-50 shadow-inner">
+                {/* Circular Profile Avatar Container Using logo.png beautifully */}
+                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-accent/40 bg-[#F0F3BD]/30 p-2 shadow-inner flex items-center justify-center">
                   <img 
-                    src="/doc.png" 
+                    src="/logo.png" 
                     alt="Clinicxa Avatar Thumbnail" 
-                    className="w-full h-full object-cover object-top scale-125 mt-1"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 
@@ -207,7 +203,7 @@ export default function HomePage() {
 
                 <Link 
                   to="/login"
-                  className="w-full bg-[#1F293D] hover:bg-primary text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors block text-center"
+                  className="w-full bg-[#1F293D] hover:bg-[#05668D] text-white text-xs font-bold py-3 rounded-xl shadow-md transition-all duration-200 active:scale-95 block text-center"
                 >
                   Make appointment
                 </Link>
@@ -218,7 +214,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Specialties */}
+      {/* ── Specialties ── */}
       <section className="max-w-6xl mx-auto px-6 md:px-12 py-16">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-extrabold" style={{ color: "#05668D" }}>Browse by Specialty</h2>
@@ -228,19 +224,19 @@ export default function HomePage() {
           {specialties.map(({ name, icon }) => (
             <button
               key={name}
-              className="group flex flex-col items-center gap-2 p-4 rounded-2xl border border-gray-100 hover:border-transparent hover:shadow-lg transition-all hover:-translate-y-1"
+              className="group flex flex-col items-center gap-2 p-4 rounded-2xl border border-gray-100 shadow-sm hover:border-transparent hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5"
               style={{ background: "white" }}
               onMouseEnter={e => e.currentTarget.style.background = "linear-gradient(135deg,#E8F8F5,#EDF6FB)"}
               onMouseLeave={e => e.currentTarget.style.background = "white"}
             >
-              <span className="text-2xl">{icon}</span>
+              <span className="text-2xl transition-transform duration-300 group-hover:scale-110">{icon}</span>
               <span className="text-xs font-semibold text-gray-600 text-center leading-tight">{name}</span>
             </button>
           ))}
         </div>
       </section>
 
-      {/* Features */}
+      {/* ── Features ── */}
       <section className="py-16" style={{ background: "#F8FFFE" }}>
         <div className="max-w-6xl mx-auto px-6 md:px-12">
           <div className="text-center mb-12">
@@ -251,10 +247,10 @@ export default function HomePage() {
             {features.map(({ icon, title, desc }) => (
               <div
                 key={title}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 hover:rotate-6"
                   style={{ background: "linear-gradient(135deg,#E8F8F5,#EDF6FB)", color: "#028090" }}
                 >
                   {icon}
@@ -267,10 +263,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Banner */}
+      {/* ── CTA Banner ── */}
       <section className="mx-4 md:mx-12 my-16 rounded-3xl overflow-hidden shadow-xl">
         <div
-          className="flex flex-col md:flex-row items-center justify-between px-8 md:px-14 py-12 gap-6"
+          className="flex flex-col md:flex-row items-center justify-between px-8 md:px-14 py-12 gap-6 transition-transform"
           style={{ background: "linear-gradient(120deg, #05668D 0%, #02C39A 100%)" }}
         >
           <div className="text-white text-center md:text-left">
@@ -279,7 +275,7 @@ export default function HomePage() {
           </div>
           <Link
             to="/register"
-            className="shrink-0 px-8 py-3.5 rounded-full font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
+            className="shrink-0 px-8 py-3.5 rounded-full font-bold text-sm shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95 hover:-translate-y-0.5 transition-all duration-200"
             style={{ background: "white", color: "#05668D" }}
           >
             Get Started Free
@@ -287,7 +283,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ── Footer ── */}
       <footer className="text-center py-8 text-gray-400 text-xs border-t border-gray-100">
         © {new Date().getFullYear()} CLINEXA · Next-Generation Healthcare
       </footer>
