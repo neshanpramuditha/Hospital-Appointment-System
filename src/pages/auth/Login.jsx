@@ -236,8 +236,8 @@ export default function Login({ onSwitch }) {
         >
           {submitting
             ? otpStep
-              ? "Verifying OTP..."
-              : "Sending OTP..."
+              ? "Wait..."
+              : "Verifying..."
             : mode === "forgot-password"
               ? otpStep
                 ? "Verify OTP & Reset"
