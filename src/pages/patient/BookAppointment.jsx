@@ -8,18 +8,20 @@ import {
   Stethoscope,
   UserRound,
 } from "lucide-react";
+
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
 
 function BookAppointment() {
   const { doctorId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [doctor, setDoctor] = useState(null);
-  const [patients, setPatients] = useState([]);
+  const [patientId, setPatientId] = useState(null);
   const [schedules, setSchedules] = useState([]);
 
   const [formData, setFormData] = useState({
-    patient_id: "",
     schedule_id: "",
     appointment_date: "",
     appointment_time: "",
@@ -31,7 +33,26 @@ function BookAppointment() {
   const fetchData = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: patientData, error: patientError } = await supabase
+      .from("patients")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (patientError) {
+      alert(patientError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!patientData) {
+      alert("Patient profile not found for this account.");
       setLoading(false);
       return;
     }
@@ -58,17 +79,6 @@ function BookAppointment() {
       return;
     }
 
-    const { data: patientsData, error: patientsError } = await supabase
-      .from("patients")
-      .select("id, full_name, email, phone")
-      .order("full_name", { ascending: true });
-
-    if (patientsError) {
-      alert(patientsError.message);
-      setLoading(false);
-      return;
-    }
-
     const { data: schedulesData, error: schedulesError } = await supabase
       .from("schedules")
       .select("*")
@@ -81,22 +91,21 @@ function BookAppointment() {
       return;
     }
 
+    setPatientId(patientData.id);
     setDoctor(doctorData);
-    setPatients(patientsData || []);
     setSchedules(schedulesData || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
-  }, [doctorId]);
+  }, [doctorId, user?.id]);
 
   const handleScheduleChange = (e) => {
     const scheduleId = e.target.value;
-    const selectedSchedule = schedules.find((s) => s.id === scheduleId);
+    const selectedSchedule = schedules.find((item) => item.id === scheduleId);
 
     setFormData({
-      ...formData,
       schedule_id: scheduleId,
       appointment_date: selectedSchedule?.available_date || "",
       appointment_time: selectedSchedule?.start_time || "",
@@ -106,8 +115,8 @@ function BookAppointment() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.patient_id) {
-      alert("Please select a patient.");
+    if (!patientId) {
+      alert("Patient profile not found.");
       return;
     }
 
@@ -120,7 +129,7 @@ function BookAppointment() {
 
     const { error } = await supabase.from("appointments").insert([
       {
-        patient_id: formData.patient_id,
+        patient_id: patientId,
         doctor_id: doctorId,
         appointment_date: formData.appointment_date,
         appointment_time: formData.appointment_time,
@@ -174,11 +183,13 @@ function BookAppointment() {
             <p className="mb-1 text-sm font-medium text-white/80">
               Appointment Booking
             </p>
+
             <h1 className="text-2xl font-bold md:text-3xl">
               Book Appointment
             </h1>
+
             <p className="mt-1 max-w-lg text-sm text-white/80">
-              Select a patient and available schedule to confirm the booking.
+              Select an available schedule to confirm your appointment.
             </p>
           </div>
 
@@ -217,34 +228,12 @@ function BookAppointment() {
             Appointment Information
           </h2>
           <p className="text-sm text-gray-500">
-            Fill appointment details below.
+            Choose a doctor schedule below.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="grid gap-5">
           <div className="grid gap-5 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Select Patient
-              </label>
-
-              <select
-                value={formData.patient_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, patient_id: e.target.value })
-                }
-                required
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="">Choose patient</option>
-                {patients.map((patient) => (
-                  <option key={patient.id} value={patient.id}>
-                    {patient.full_name} - {patient.phone}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <div>
               <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Available Schedule
@@ -257,6 +246,7 @@ function BookAppointment() {
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
               >
                 <option value="">Choose schedule</option>
+
                 {schedules.map((schedule) => (
                   <option key={schedule.id} value={schedule.id}>
                     {schedule.available_date} | {schedule.start_time} -{" "}
@@ -271,6 +261,7 @@ function BookAppointment() {
                 <Calendar size={18} />
                 <p className="font-semibold">Appointment Date</p>
               </div>
+
               <p className="text-gray-700">
                 {formData.appointment_date || "Select a schedule"}
               </p>
@@ -281,6 +272,7 @@ function BookAppointment() {
                 <Clock size={18} />
                 <p className="font-semibold">Appointment Time</p>
               </div>
+
               <p className="text-gray-700">
                 {formData.appointment_time || "Select a schedule"}
               </p>
