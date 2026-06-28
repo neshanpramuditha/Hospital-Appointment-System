@@ -21,13 +21,15 @@ import Schedules from "../pages/Schedules";
 
 import Patient from "../pages/Patient";
 import Doctor from "../pages/Doctor";
+import HomePage from "../pages/HomePage";
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
