@@ -34,16 +34,17 @@ export async function registerPatient({
 
   if (userError) throw userError;
 
-  // Create patient profile
-  const { error: patientError } = await supabase
-    .from("patients")
-    .insert({
-      user_id: authUser.id,
-    });
+// Create patient profile
+const { error: patientError } = await supabase
+  .from("patients")
+  .insert({
+    user_id: authUser.id,
+    full_name: `${firstName} ${lastName}`,
+    email: email,
+  });
 
-  if (patientError) throw patientError;
+if (patientError) throw patientError;
 
-  return authUser;
 }
 
 /* Login */
@@ -104,14 +105,12 @@ if (checkError) {
 
 if (!existingPatient) {
   const { error: patientError } = await supabase
-    .from("patients")
-    .insert({
-      user_id: user.id,
-    });
-
-  if (patientError) {
-    throw patientError;
-  }
+  .from("patients")
+  .insert({
+    user_id: user.id,
+    full_name: fullName,
+    email: user.email,
+  });
 }
 }
 
