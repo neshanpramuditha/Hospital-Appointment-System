@@ -5,7 +5,7 @@ export const ROLES = {
 };
 
 export const DASHBOARD_ROUTES = {
-    patient: "/patient/dashboard",
-    doctor: "/doctor/dashboard",
-    admin: "/admin/dashboard",
+    patient: "/dashboard/user",
+    doctor: "/dashboard/doctor",
+    admin: "/dashboard/admin",
 };
