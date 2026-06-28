@@ -79,10 +79,13 @@ function BookAppointment() {
       return;
     }
 
+    const today = new Date().toISOString().split("T")[0];
+
     const { data: schedulesData, error: schedulesError } = await supabase
       .from("schedules")
       .select("*")
       .eq("doctor_id", doctorId)
+      .gte("available_date", today)
       .order("available_date", { ascending: true });
 
     if (schedulesError) {
