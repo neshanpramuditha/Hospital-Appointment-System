@@ -29,7 +29,7 @@ export default function BrandPanel() {
             backdropFilter: "blur(10px)",
           }}
         >
-          <CrossIcon size={32} />
+          <img src="/logo.png" alt="CLINEXA Logo" className="w-15 h-15 object-contain inline-block" />
         </div>
 
         <h1
@@ -38,7 +38,7 @@ export default function BrandPanel() {
             fontFamily: "Poppins, sans-serif",
           }}
         >
-          HospitalCare
+          CLINEXA
         </h1>
 
         <p
@@ -47,9 +47,7 @@ export default function BrandPanel() {
             fontFamily: "Inter, sans-serif",
           }}
         >
-          Hospital Appointment
-          <br />
-          Management System
+        Next Generation Healthcare
         </p>
       </div>
 
