@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import FormField from "../../assets/auth/FormField";
@@ -15,9 +16,11 @@ import StrengthMeter, {
 import { GoogleIcon } from "../../assets/auth/icons";
 
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function Register({ onSwitch }) {
-  const { register } = useAuth();
+  const navigate = useNavigate();
+  const { register, googleLogin } = useAuth();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -79,6 +82,24 @@ export default function Register({ onSwitch }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleGoogleSuccess(credentialResponse) {
+    try {
+      if (!credentialResponse?.credential) {
+        throw new Error("Google sign-in did not return a credential.");
+      }
+
+      await googleLogin(credentialResponse.credential);
+      toast.success("Google sign-in successful.");
+      navigate("/patient/home", { replace: true });
+    } catch (err) {
+      toast.error(err.message || "Google login failed.");
+    }
+  }
+
+  function handleGoogleError() {
+    toast.error("Google login was cancelled or failed.");
   }
 
   return (
@@ -167,10 +188,21 @@ export default function Register({ onSwitch }) {
 
       <Divider />
 
-      <SocialButton>
-        <GoogleIcon />
-        Continue with Google
-      </SocialButton>
+      <div className="flex justify-center">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          useOneTap={false}
+          text="signin"
+          locale="en"
+          render={(renderProps) => (
+            <SocialButton onClick={renderProps.onClick} disabled={renderProps.disabled}>
+              <GoogleIcon />
+              Login With Google
+            </SocialButton>
+          )}
+        />
+      </div>
 
       <p
         className="text-center text-sm text-slate-500 mt-6"

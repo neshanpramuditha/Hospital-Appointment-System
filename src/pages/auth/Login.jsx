@@ -248,19 +248,21 @@ export default function Login({ onSwitch }) {
 
       <Divider />
 
-      <GoogleLogin
-        onSuccess={handleGoogleSuccess}
-        onError={handleGoogleError}
-        useOneTap={false}
-        text="continue_with"
-        locale="en"
-        render={(renderProps) => (
-          <SocialButton onClick={renderProps.onClick} disabled={renderProps.disabled}>
-            <GoogleIcon />
-            Login With Google
-          </SocialButton>
-        )}
-      />
+      <div className="flex justify-center">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          useOneTap={false}
+          text="signin"
+          locale="en"
+          render={(renderProps) => (
+            <SocialButton onClick={renderProps.onClick} disabled={renderProps.disabled}>
+              <GoogleIcon />
+              Login With Google
+            </SocialButton>
+          )}
+        />
+      </div>
 
       <p
         className="text-center text-sm text-slate-500 mt-6"
