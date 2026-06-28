@@ -114,10 +114,10 @@ function useTypewriter(text, speed = 55, startDelay = 300) {
 
 // Data
 const pillars = [
-  { icon: "⚡", title: "Scalable Engineering", desc: "Built to grow reliably across distributed infrastructure without compromising speed." },
-  { icon: "🔒", title: "Enterprise Security", desc: "Strict medical-grade data isolation and regulatory compliance baked in from day one." },
+  { icon: "👨‍🔬", title: "Scalable Engineering", desc: "Built to grow reliably across distributed infrastructure without compromising speed." },
+  { icon: "🛡️", title: "Enterprise Security", desc: "Strict medical-grade data isolation and regulatory compliance baked in from day one." },
   { icon: "🩺", title: "Patient-First Design", desc: "Every interaction is shaped around clarity, comfort, and the patient's journey." },
-  { icon: "🔄", title: "Real-Time Sync", desc: "Doctor availability and records stay perfectly synchronized with zero latency." },
+  { icon: "🌀", title: "Real-Time Sync", desc: "Doctor availability and records stay perfectly synchronized with zero latency." },
 ];
 
 const milestones = [

@@ -11,7 +11,7 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div
         className="w-full max-w-6xl overflow-hidden rounded-3xl shadow-2xl bg-white grid lg:grid-cols-2"
       >
