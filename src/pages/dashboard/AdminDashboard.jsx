@@ -27,7 +27,7 @@ export default function AdminDashboard() {
       <AdminSidebar />
       
       <div className="flex-1 ml-64 flex flex-col">
-        <Navbar onLogout={handleLogout} />
+        {/* <Navbar onLogout={handleLogout} /> */}
         
         <div className="p-8">
           <div className="mb-6">
