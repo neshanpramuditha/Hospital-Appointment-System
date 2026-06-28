@@ -9,9 +9,13 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
 
 function MyAppointments() {
+  const { user } = useAuth();
+
   const [appointments, setAppointments] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -20,7 +24,26 @@ function MyAppointments() {
   const fetchAppointments = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !user?.id) {
+      setAppointments([]);
+      setLoading(false);
+      return;
+    }
+
+    const { data: patient, error: patientError } = await supabase
+      .from("patients")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (patientError) {
+      alert(patientError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!patient) {
       setAppointments([]);
       setLoading(false);
       return;
@@ -53,6 +76,7 @@ function MyAppointments() {
           )
         )
       `)
+      .eq("patient_id", patient.id)
       .order("appointment_date", { ascending: true });
 
     if (error) {
@@ -66,7 +90,7 @@ function MyAppointments() {
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [user?.id]);
 
   const filteredAppointments = useMemo(() => {
     let result = [...appointments];
@@ -74,16 +98,16 @@ function MyAppointments() {
 
     if (keyword) {
       result = result.filter((appointment) => {
-        const patientName = appointment.patients?.full_name || "";
         const doctorName = appointment.doctors?.full_name || "";
         const specialization =
           appointment.doctors?.specializations?.name || "";
 
         return (
-          patientName.toLowerCase().includes(keyword) ||
           doctorName.toLowerCase().includes(keyword) ||
           specialization.toLowerCase().includes(keyword) ||
           appointment.status?.toLowerCase().includes(keyword) ||
+          appointment.appointment_date?.includes(search.trim()) ||
+          appointment.appointment_time?.includes(search.trim()) ||
           appointment.id?.toLowerCase().includes(keyword)
         );
       });
@@ -104,18 +128,9 @@ function MyAppointments() {
   };
 
   const getStatusClass = (status) => {
-    if (status === "confirmed") {
-      return "bg-accent/10 text-secondary";
-    }
-
-    if (status === "cancelled") {
-      return "bg-red-50 text-red-600";
-    }
-
-    if (status === "completed") {
-      return "bg-blue-50 text-blue-600";
-    }
-
+    if (status === "confirmed") return "bg-accent/10 text-secondary";
+    if (status === "cancelled") return "bg-red-50 text-red-600";
+    if (status === "completed") return "bg-blue-50 text-blue-600";
     return "bg-amber-50 text-amber-700";
   };
 
@@ -131,7 +146,7 @@ function MyAppointments() {
               My Appointments
             </h1>
             <p className="mt-1 max-w-lg text-sm text-white/80">
-              View and manage booked appointments.
+              View your booked appointments.
             </p>
           </div>
 
@@ -143,12 +158,6 @@ function MyAppointments() {
           </Link>
         </div>
       </div>
-
-      {!isSupabaseConfigured && (
-        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-          Supabase is not configured yet. Set environment variables to load appointments.
-        </div>
-      )}
 
       <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl bg-white p-4 shadow-md">
@@ -183,7 +192,7 @@ function MyAppointments() {
 
             <input
               type="text"
-              placeholder="Search doctor, patient, specialization, status..."
+              placeholder="Search doctor, specialization, status..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-11 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
@@ -246,7 +255,7 @@ function MyAppointments() {
                     </div>
 
                     <p className="mt-2 text-sm text-gray-500">
-                      Patient: {appointment.patients?.full_name || "N/A"}
+                      Appointment ID: {appointment.id.slice(0, 8)}
                     </p>
                   </div>
                 </div>

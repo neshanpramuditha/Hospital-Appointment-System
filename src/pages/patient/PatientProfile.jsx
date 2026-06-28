@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
 import { Save, UserRound } from "lucide-react";
+
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
 
 function PatientProfile() {
-  const [patients, setPatients] = useState([]);
-  const [selectedId, setSelectedId] = useState("");
+  const { user } = useAuth();
+
+  const [patientId, setPatientId] = useState(null);
+
   const [profile, setProfile] = useState({
     full_name: "",
     email: "",
     phone: "",
     date_of_birth: "",
   });
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const fetchPatients = async () => {
+  const fetchPatient = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !user?.id) {
       setLoading(false);
       return;
     }
@@ -25,45 +30,37 @@ function PatientProfile() {
     const { data, error } = await supabase
       .from("patients")
       .select("*")
-      .order("full_name", { ascending: true });
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
 
     if (error) {
       alert(error.message);
-    } else {
-      setPatients(data || []);
-
-      if (data?.length > 0) {
-        setSelectedId(data[0].id);
-        setProfile({
-          full_name: data[0].full_name || "",
-          email: data[0].email || "",
-          phone: data[0].phone || "",
-          date_of_birth: data[0].date_of_birth || "",
-        });
-      }
+      setLoading(false);
+      return;
     }
+
+    if (!data) {
+      setPatientId(null);
+      setLoading(false);
+      return;
+    }
+
+    setPatientId(data.id);
+
+    setProfile({
+      full_name: data.full_name || "",
+      email: data.email || "",
+      phone: data.phone || "",
+      date_of_birth: data.date_of_birth || "",
+    });
 
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchPatients();
-  }, []);
-
-  const handlePatientChange = (id) => {
-    setSelectedId(id);
-
-    const patient = patients.find((p) => p.id === id);
-
-    if (patient) {
-      setProfile({
-        full_name: patient.full_name || "",
-        email: patient.email || "",
-        phone: patient.phone || "",
-        date_of_birth: patient.date_of_birth || "",
-      });
-    }
-  };
+    fetchPatient();
+  }, [user?.id]);
 
   const handleChange = (e) => {
     setProfile({
@@ -75,8 +72,8 @@ function PatientProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedId) {
-      alert("Please select a patient.");
+    if (!patientId) {
+      alert("Patient profile not found.");
       return;
     }
 
@@ -90,7 +87,7 @@ function PatientProfile() {
         phone: profile.phone,
         date_of_birth: profile.date_of_birth,
       })
-      .eq("id", selectedId);
+      .eq("id", patientId);
 
     setSaving(false);
 
@@ -100,7 +97,7 @@ function PatientProfile() {
     }
 
     alert("Profile updated successfully");
-    fetchPatients();
+    fetchPatient();
   };
 
   return (
@@ -109,9 +106,11 @@ function PatientProfile() {
         <p className="mb-1 text-sm font-medium text-white/80">
           Patient Portal
         </p>
+
         <h1 className="text-2xl font-bold md:text-3xl">My Profile</h1>
+
         <p className="mt-1 max-w-lg text-sm text-white/80">
-          View and update patient profile information.
+          View and update your patient profile information.
         </p>
       </div>
 
@@ -133,29 +132,12 @@ function PatientProfile() {
 
         {loading ? (
           <p className="py-10 text-center text-gray-500">Loading profile...</p>
-        ) : patients.length === 0 ? (
+        ) : !patientId ? (
           <p className="py-10 text-center text-gray-500">
-            No patient profile found.
+            No patient profile found for this account.
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-5">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Select Patient
-              </label>
-              <select
-                value={selectedId}
-                onChange={(e) => handlePatientChange(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
-              >
-                {patients.map((patient) => (
-                  <option key={patient.id} value={patient.id}>
-                    {patient.full_name} - {patient.phone}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <div className="grid gap-5 md:grid-cols-2">
               <Input
                 label="Full Name"
