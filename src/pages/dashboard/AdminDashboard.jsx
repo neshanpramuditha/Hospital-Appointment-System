@@ -1,11 +1,25 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import AdminSidebar from '../../components/Sidebar';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
   const totalDoctors = 12;
   const totalPatients = 145;
   const totalAppointments = 48;
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   return (
     <div className="flex bg-slate-50 min-h-screen font-sans">
@@ -13,7 +27,7 @@ export default function AdminDashboard() {
       <AdminSidebar />
       
       <div className="flex-1 ml-64 flex flex-col">
-        <Navbar />
+        <Navbar onLogout={handleLogout} />
         
         <div className="p-8">
           <div className="mb-6">
