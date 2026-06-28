@@ -164,3 +164,35 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+
+// Patient Profiles
+export async function getPatientProfile(userId) {
+  const { data, error } = await supabase
+    .from("patients")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
+}
+
+// Doctor Profiles
+export async function getDoctorProfile(userId) {
+  const { data, error } = await supabase
+    .from("doctors")
+    .select(`
+      *,
+      specialization:specialization_id (
+        id,
+        name
+      )
+    `)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
+}
