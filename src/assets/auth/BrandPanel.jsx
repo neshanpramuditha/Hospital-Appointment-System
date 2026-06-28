@@ -1,4 +1,7 @@
+import React from "react";
+import { Link } from "react-router-dom";
 import { CrossIcon } from "./icons";
+import { IoChevronBackCircleOutline } from "react-icons/io5";
 
 export default function BrandPanel() {
   return (
@@ -88,6 +91,12 @@ export default function BrandPanel() {
               }}
             />
           ))}
+          <Link 
+          to="/"
+          className="flex items-center gap-1 text-white/80 hover:text-white transition-colors">
+            <IoChevronBackCircleOutline className="w-10 h-10" />
+            </Link>
+          
         </div>
       </div>
     </div>
