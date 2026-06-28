@@ -55,7 +55,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-accent selection:text-white">
 
-      {/* ── Navbar ── */}
+      {/* Navbar */}
       <nav
         className="px-6 md:px-12 py-4 flex items-center justify-between shadow-sm relative z-50"
         style={{ background: "linear-gradient(90deg, #05668D 0%, #02C39A 100%)" }}
@@ -112,7 +112,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ── HERO SECTION ── */}
+      {/* HERO SECTION */}
       <section className="relative bg-white pt-10 pb-20 lg:py-24 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           
@@ -122,7 +122,7 @@ export default function HomePage() {
               className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase shadow-sm"
               style={{ background: "#E8F8F5", color: "#02C39A" }}
             >
-              ✨ Next-Generation Healthcare
+              🩺 Next-Generation Healthcare
             </span>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight" style={{ color: "#05668D" }}>
@@ -131,7 +131,7 @@ export default function HomePage() {
             </h1>
             
             <p className="text-gray-500 text-base md:text-lg max-w-md mx-auto lg:mx-0 leading-relaxed">
-              Book appointments with top specialists, manage your schedules, and access hospital services — all from one place.
+              Book appointments with top specialists, manage your schedules, and access hospital services - all from one place.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
@@ -218,7 +218,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Specialties ── */}
+      {/* Specialties */}
       <section className="max-w-6xl mx-auto px-6 md:px-12 py-16">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-extrabold" style={{ color: "#05668D" }}>Browse by Specialty</h2>
@@ -240,7 +240,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Features ── */}
+      {/* Features */}
       <section className="py-16" style={{ background: "#F8FFFE" }}>
         <div className="max-w-6xl mx-auto px-6 md:px-12">
           <div className="text-center mb-12">
@@ -267,7 +267,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── CTA Banner ── */}
+      {/* CTA Banner */}
       <section className="mx-4 md:mx-12 my-16 rounded-3xl overflow-hidden shadow-xl">
         <div
           className="flex flex-col md:flex-row items-center justify-between px-8 md:px-14 py-12 gap-6"
@@ -287,7 +287,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <footer className="text-center py-8 text-gray-400 text-xs border-t border-gray-100">
         © {new Date().getFullYear()} CLINEXA · Next-Generation Healthcare
       </footer>
