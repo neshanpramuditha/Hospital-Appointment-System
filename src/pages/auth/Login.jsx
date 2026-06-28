@@ -40,25 +40,21 @@ export default function Login({ onSwitch }) {
   const [otpStep, setOtpStep] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [mode, setMode] = useState("login");
-  const [goToPatientHome, setGoToPatientHome] = useState(false);
 
-  // Redirect after successful login
-  useEffect(() => {
-    if (!loading && isAuthenticated && role) {
-      if (goToPatientHome) {
-        navigate("/patient/home", {
-          replace: true,
-        });
-        return;
-      }
+// Redirect after successful login
+useEffect(() => {
+  if (!loading && isAuthenticated && role) {
+    toast.success("Welcome back!");
 
-      toast.success("Welcome back!");
+    const destination = DASHBOARD_ROUTES[role];
 
-      navigate(DASHBOARD_ROUTES[role], {
-        replace: true,
-      });
+    if (destination) {
+      navigate(destination, { replace: true });
+    } else {
+      navigate("/unauthorized", { replace: true });
     }
-  }, [loading, isAuthenticated, role, navigate, goToPatientHome]);
+  }
+}, [loading, isAuthenticated, role, navigate]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -128,19 +124,17 @@ export default function Login({ onSwitch }) {
       toast.error("Please enter your password.");
       return;
     }
-
     try {
       setSubmitting(true);
-      setGoToPatientHome(false);
-
       await login(email, password);
-
-      // Redirect handled automatically by useEffect
+  // AuthContext updates user/profile.
+  // useEffect above redirects according to the user's role.
     } catch (err) {
       toast.error(err.message || "Login failed.");
     } finally {
       setSubmitting(false);
     }
+
   }
 
   function toggleMode() {
@@ -149,20 +143,22 @@ export default function Login({ onSwitch }) {
     setOtpCode("");
   }
 
-  async function handleGoogleSuccess(credentialResponse) {
-    try {
-      if (!credentialResponse?.credential) {
-        throw new Error("Google sign-in did not return a credential.");
-      }
-
-      setGoToPatientHome(true);
-      await googleLogin(credentialResponse.credential);
-      toast.success("Google sign-in successful.");
-      navigate("/patient/home", { replace: true });
-    } catch (err) {
-      toast.error(err.message || "Google login failed.");
+async function handleGoogleSuccess(credentialResponse) {
+  try {
+    if (!credentialResponse?.credential) {
+      throw new Error(
+        "Google sign-in did not return a credential."
+      );
     }
+
+    await googleLogin(credentialResponse.credential);
+
+    // Do not navigate here.
+    // AuthContext + useEffect will redirect based on the role.
+  } catch (err) {
+    toast.error(err.message || "Google login failed.");
   }
+}
 
   function handleGoogleError() {
     toast.error("Google login was cancelled or failed.");
@@ -237,7 +233,7 @@ export default function Login({ onSwitch }) {
           {submitting
             ? otpStep
               ? "Verifying OTP..."
-              : "Sending OTP..."
+              : "Verifying..."
             : mode === "forgot-password"
               ? otpStep
                 ? "Verify OTP & Reset"

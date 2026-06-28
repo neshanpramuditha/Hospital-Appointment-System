@@ -1,11 +1,11 @@
 export const ROLES = {
-    PATIENT: "patient",
-    DOCTOR: "doctor",
-    ADMIN: "admin",
+  ADMIN: "admin",
+  DOCTOR: "doctor",
+  PATIENT: "patient",
 };
 
 export const DASHBOARD_ROUTES = {
-    patient: "/patient/dashboard",
-    doctor: "/doctor/dashboard",
-    admin: "/admin/dashboard",
+  admin: "/admin/dashboard",
+  doctor: "/doctor/dashboard",
+  patient: "/patient/dashboard",
 };
