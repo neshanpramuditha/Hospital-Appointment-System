@@ -231,11 +231,10 @@ Main Tables
 
 GitHub Insights can be used to view:
 
-* Number of commits
-* Lines of code contributed
-* Pull Requests
-* Issues
-* Repository activity
+* [Number of commits]([https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/contributor](https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/commit-activity)s)
+* [Lines of code contributed]([https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/contributors](https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/contributors?from=3%2F28%2F2026))
+* [Pull Requests]([https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/contributors](https://github.com/neshanpramuditha/Hospital-Appointment-System/pulse))
+* [Issues](https://github.com/neshanpramuditha/Hospital-Appointment-System/issues)
 
 ---
 
