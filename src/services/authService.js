@@ -44,6 +44,7 @@ const { error: patientError } = await supabase
   });
 
 if (patientError) throw patientError;
+return authUser;
 
 }
 
@@ -105,12 +106,16 @@ if (checkError) {
 
 if (!existingPatient) {
   const { error: patientError } = await supabase
-  .from("patients")
-  .insert({
-    user_id: user.id,
-    full_name: fullName,
-    email: user.email,
-  });
+    .from("patients")
+    .insert({
+      user_id: user.id,
+      full_name: fullName,
+      email: user.email,
+    });
+
+  if (patientError) {
+    throw patientError;
+  }
 }
 }
 
@@ -143,10 +148,12 @@ export async function loginWithGoogleCredential(credential) {
 export async function requestPasswordReset(email) {
   const redirectTo = `${window.location.origin}/login`;
 
-  const { error } = await supabase.auth.resetPasswordForEmail({
+  const { error } = await supabase.auth.resetPasswordForEmail(
     email,
-    redirectTo,
-  });
+    {
+      redirectTo,
+    }
+  );
 
   if (error) {
     throw error;
