@@ -33,6 +33,7 @@ The application improves the efficiency of hospital operations by reducing manua
 * React Router DOM
 * React Hot Toast
 * React Icons
+* Lucide-react
 * Google OAuth
 
 ### Backend
