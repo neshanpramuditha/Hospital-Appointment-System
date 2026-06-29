@@ -18,8 +18,8 @@ function MyAppointments() {
 
   const [appointments, setAppointments] = useState([]);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [timeFilter, setTimeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
+  const [timeFilter, setTimeFilter] = useState("upcoming");
   const [sortBy, setSortBy] = useState("upcoming");
   const [loading, setLoading] = useState(true);
 
@@ -140,7 +140,11 @@ function MyAppointments() {
       });
     }
 
-    if (statusFilter !== "all") {
+    if (statusFilter === "active") {
+      result = result.filter((appointment) =>
+        ["pending", "confirmed"].includes(displayStatus(appointment))
+      );
+    } else if (statusFilter !== "all") {
       result = result.filter(
         (appointment) => displayStatus(appointment) === statusFilter
       );
@@ -174,8 +178,8 @@ function MyAppointments() {
 
   const clearFilters = () => {
     setSearch("");
-    setStatusFilter("all");
-    setTimeFilter("all");
+    setStatusFilter("active");
+    setTimeFilter("upcoming");
     setSortBy("upcoming");
   };
 
@@ -249,6 +253,7 @@ function MyAppointments() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
           >
+            <option value="active">Pending + Confirmed</option>
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
