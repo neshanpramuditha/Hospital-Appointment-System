@@ -93,7 +93,7 @@ VITE_SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
 VITE_GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID
 ```
 
-It should replace the above values with real Supabase and Google OAuth credentials.👆
+It should replace the above values with real Supabase and Google OAuth credentials.👆 <br>
 (We can't reveal it in the public repository for security reasons)
 
 ---
@@ -231,10 +231,17 @@ Main Tables
 
 Click here to view: 👇
 
-* Number of commits (https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/commit-activity)
-* Lines of code contributed - https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/contributors?from=3%2F28%2F2026
-* Pull Requests - https://github.com/neshanpramuditha/Hospital-Appointment-System/pulse
-* Issues - https://github.com/neshanpramuditha/Hospital-Appointment-System/issues
+* Number of commits: <br>
+  https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/commit-activity
+  
+* Lines of code contributed: <br>
+  https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/contributors?from=3%2F28%2F2026
+  
+* Pull Requests: <br>
+  https://github.com/neshanpramuditha/Hospital-Appointment-System/pulse
+  
+* Issues: <br>
+  https://github.com/neshanpramuditha/Hospital-Appointment-System/issues
 
 ---
 
