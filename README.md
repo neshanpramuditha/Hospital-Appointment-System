@@ -231,7 +231,7 @@ Main Tables
 
 Click here to view: 👇
 
-* Number of commits - https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/commit-activity
+* Number of commits (https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/commit-activity)
 * Lines of code contributed - https://github.com/neshanpramuditha/Hospital-Appointment-System/graphs/contributors?from=3%2F28%2F2026
 * Pull Requests - https://github.com/neshanpramuditha/Hospital-Appointment-System/pulse
 * Issues - https://github.com/neshanpramuditha/Hospital-Appointment-System/issues
