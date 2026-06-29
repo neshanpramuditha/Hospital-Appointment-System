@@ -197,7 +197,7 @@ export default function HomePage() {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8 text-white/85 text-sm font-semibold">
-          {[["About","/about"],["Contact","#"]].map(([l,h]) => (
+          {[["About","/about"],["Contact","/contact"]].map(([l,h]) => (
             <a key={l} href={h} className="nav-ul hover:text-white transition-colors pb-0.5">{l}</a>
           ))}
         </div>
