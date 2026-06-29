@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import Footer from "../components/Footer";
 
 // Data
 const features = [
@@ -434,10 +435,7 @@ export default function HomePage() {
       </Reveal>
 
       {/* FOOTER */}
-      <footer className="text-center py-8 text-xs flex items-center justify-center gap-2 border-t" style={{ color:"#05668D88", borderColor:"rgba(5,102,141,0.12)" }}>
-        <img src="/logo.png" alt="" className="w-5 h-5 opacity-40 object-contain" />
-        © {new Date().getFullYear()} CLINEXA · Next-Generation Healthcare
-      </footer>
+      <Footer/>
     </div>
   );
 }

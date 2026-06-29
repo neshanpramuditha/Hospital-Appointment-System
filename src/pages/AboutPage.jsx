@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
+import Footer from "../components/Footer";
 
 // Animated Canvas
 function MedicalParticleCanvas() {
@@ -277,7 +278,7 @@ export default function AboutPage() {
           <div className="anim-fade-in inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-8 border"
             style={{ color: "#028090", borderColor: "#02C39A44", background: "rgba(2,195,154,0.08)" }}>
             <img src="/logo.png" alt="" className="w-4 h-4 object-contain opacity-70" />
-            About CLINEXA
+            About CLINEXA™
           </div>
 
           {/* Typewriter headline */}
@@ -323,7 +324,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Mission + Doctor */}
+      {/* Mission and Doctor */}
       <section className="max-w-6xl mx-auto px-6 md:px-12 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
         {/* doc2 image */}
@@ -427,10 +428,7 @@ export default function AboutPage() {
       </section>
 
       {/* Footer */}
-      <footer className="text-center py-8 text-gray-500 text-xs border-t flex items-center justify-center gap-2" style={{ borderColor: "rgba(5,102,141,0.12)" }}>
-        <img src="/logo.png" alt="CLINEXA" className="w-5 h-5 opacity-40 object-contain" />
-        © {new Date().getFullYear()} CLINEXA · Next-Generation Healthcare
-      </footer>
+      <Footer/>
     </div>
   );
 }
