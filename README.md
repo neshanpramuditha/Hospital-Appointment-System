@@ -14,7 +14,7 @@ The application improves the efficiency of hospital operations by reducing manua
 
 | Student ID  | Full Name | Responsibilities                                                                                                                      |
 | ----------- | --------------------| ----------------------------------------------------------------------------------------------------------------------------|
-| CT/2021/009 | PREMARATHNA A.H.N.P | System Architecture, Database Design, Supabase Integration, Authentication and Rollbase access control, UI and Prototyping  |
+| CT/2021/009 | PREMARATHNA A.H.N.P | System Architecture, Database Design, Supabase Integration, Authentication and Rollbase access control, Home, About and Contact pages, UI and Prototyping, Integrate all basic functionalities  |
 | CT/2021/010 | CHAMARA B.P         | Appointment & Schedule Management Module                                                                                    |
 | CT/2021/027 | ERANDA K.K.D.J      | Patient Management Module, Functional support for managing databases, Supervise modules developments - Admin dashboard, Doctor management, Appointment management, and Schedule management. |                                                        
 | CT/2021/063 | DILSARA S.A.K.N     | Doctor Management Module, Reports                                                                                           |
