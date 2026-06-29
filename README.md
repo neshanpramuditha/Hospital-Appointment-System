@@ -1,6 +1,6 @@
-# 🩺 CLINEXA - Hospital Appointment Management System
+# 🩺 CLINEXA - Hospital Appointment Management System (Mini Group Project)
 
-### SWST 31032 – Applied Information Systems (Mini Group Project)
+### SSWST 32043 - Software Architecture and Concepts 
 ---
 ## 📖 Project Description
 
@@ -241,7 +241,7 @@ GitHub Insights can be used to view:
 
 # 📄 License
 
-This project was developed solely for academic purposes as part of the **SWST 31032 – Applied Information Systems** module.
+This project was developed solely for academic purposes as part of the **SWST 32043 - Software Architecture and Concepts** module.
 
 ---
-Group No 01
+**Group No 01** 💁‍♂️🙋🙎‍♂️🙅‍♂️🙍‍♀️
