@@ -232,8 +232,8 @@ export default function AboutPage() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-white/85 text-sm font-semibold">
-          <Link to="/" className="nav-underline hover:text-white transition-colors duration-200 pb-0.5">Home</Link>
-          <a href="#" className="nav-underline hover:text-white transition-colors duration-200 pb-0.5">Contact</a>
+          <Link to="/home" className="nav-underline hover:text-white transition-colors duration-200 pb-0.5">Home</Link>
+          <a href="/contact" className="nav-underline hover:text-white transition-colors duration-200 pb-0.5">Contact</a>
         </div>
 
         <div className="hidden md:flex items-center gap-3">

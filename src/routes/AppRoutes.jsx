@@ -23,6 +23,7 @@ import Patient from "../pages/Patient";
 import Doctor from "../pages/Doctor";
 import HomePage from "../pages/HomePage";
 import AboutPage from "../pages/AboutPage";
+import ContactPage from "../pages/ContactPage";
 
 export default function AppRoutes() {
   return (
@@ -64,6 +65,7 @@ export default function AppRoutes() {
 
         <Route path="*" element={<Navigate to="/login" replace />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
       </Routes>
     </BrowserRouter>
   );
