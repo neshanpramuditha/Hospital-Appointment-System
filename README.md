@@ -1,6 +1,6 @@
-# 🩺 CLINEXA - Hospital Appointment Management System (Mini Group Project)
+# 🩺 CLINEXA - Hospital Appointment Management System
 
-### SSWST 32043 - Software Architecture and Concepts 
+### SSWST 32043 - Software Architecture and Concepts (Mini Group Project)
 ---
 ## 📖 Project Description
 
