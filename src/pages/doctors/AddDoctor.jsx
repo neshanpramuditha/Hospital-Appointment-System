@@ -68,7 +68,13 @@ function AddDoctor() {
     try {
       setSaving(true);
 
-      await createDoctorAccount(doctor);
+      await createDoctorAccount({
+        full_name: doctor.full_name,
+        email: doctor.email,
+        phone: doctor.phone,
+        specialization_id: doctor.specialization_id,
+        password: doctor.password,
+      });
 
       alert("Doctor account created successfully");
       navigate("/doctors");
@@ -188,11 +194,6 @@ function AddDoctor() {
                 onChange={handleChange}
                 required
               />
-            </div>
-
-            <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-700">
-              Password is saved in Supabase Authentication only, not in the
-              doctors table.
             </div>
 
             <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

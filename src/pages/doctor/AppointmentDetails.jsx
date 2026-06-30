@@ -12,6 +12,7 @@ import {
 
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import { getDoctorByUserId } from "../../services/doctorService";
 
 function AppointmentDetails() {
   const { id } = useParams();
@@ -31,12 +32,9 @@ function AppointmentDetails() {
       return;
     }
 
-    const { data: doctor, error: doctorError } = await supabase
-      .from("doctors")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: doctor, error: doctorError } = await getDoctorByUserId(
+      user.id
+    );
 
     if (doctorError) {
       alert(doctorError.message);

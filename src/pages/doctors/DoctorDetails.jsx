@@ -9,7 +9,8 @@ import {
   UserRound,
   Pencil,
 } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { isSupabaseConfigured } from "../../services/supabase";
+import { getDoctorById } from "../../services/doctorService";
 
 function DoctorDetails() {
   const { id } = useParams();
@@ -24,22 +25,7 @@ function DoctorDetails() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("doctors")
-      .select(`
-        id,
-        full_name,
-        email,
-        phone,
-        specialization_id,
-        created_at,
-        specializations (
-          id,
-          name
-        )
-      `)
-      .eq("id", id)
-      .single();
+    const { data, error } = await getDoctorById(id);
 
     if (error) alert(error.message);
     else setDoctor(data);

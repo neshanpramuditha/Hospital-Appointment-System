@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, UserRound } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { getDoctorById, updateDoctor } from "../../services/doctorService";
 
 function EditDoctor() {
   const { id } = useParams();
@@ -31,11 +32,7 @@ function EditDoctor() {
       .select("*")
       .order("name", { ascending: true });
 
-    const { data: doctorData, error: doctorError } = await supabase
-      .from("doctors")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data: doctorData, error: doctorError } = await getDoctorById(id);
 
     if (specError) alert(specError.message);
 
@@ -71,15 +68,12 @@ function EditDoctor() {
     e.preventDefault();
     setSaving(true);
 
-    const { error } = await supabase
-      .from("doctors")
-      .update({
-        full_name: doctor.full_name,
-        email: doctor.email,
-        phone: doctor.phone,
-        specialization_id: doctor.specialization_id,
-      })
-      .eq("id", id);
+    const { error } = await updateDoctor(id, {
+      full_name: doctor.full_name,
+      email: doctor.email,
+      phone: doctor.phone,
+      specialization_id: doctor.specialization_id,
+    });
 
     setSaving(false);
 

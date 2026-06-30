@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
 
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import { getDoctorByUserId } from "../../services/doctorService";
 
 function EditSchedule() {
   const { id } = useParams();
@@ -30,19 +31,9 @@ function EditSchedule() {
       return;
     }
 
-    const { data: doctorData, error: doctorError } = await supabase
-      .from("doctors")
-      .select(`
-        id,
-        full_name,
-        specializations (
-          id,
-          name
-        )
-      `)
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: doctorData, error: doctorError } = await getDoctorByUserId(
+      user.id
+    );
 
     if (doctorError) {
       alert(doctorError.message);

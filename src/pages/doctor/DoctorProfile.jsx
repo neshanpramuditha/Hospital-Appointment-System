@@ -3,6 +3,11 @@ import { Save, Shield, Stethoscope, UserRound } from "lucide-react";
 
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import {
+  changeDoctorPassword,
+  getDoctorByUserId,
+  updateDoctor,
+} from "../../services/doctorService";
 
 function DoctorProfile() {
   const { user } = useAuth();
@@ -45,12 +50,9 @@ function DoctorProfile() {
       return;
     }
 
-    const { data: doctorData, error: doctorError } = await supabase
-      .from("doctors")
-      .select("*")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: doctorData, error: doctorError } = await getDoctorByUserId(
+      user.id
+    );
 
     if (doctorError) {
       alert(doctorError.message);
@@ -106,15 +108,12 @@ function DoctorProfile() {
 
     setSaving(true);
 
-    const { error } = await supabase
-      .from("doctors")
-      .update({
-        full_name: profile.full_name,
-        email: profile.email,
-        phone: profile.phone,
-        specialization_id: profile.specialization_id,
-      })
-      .eq("id", doctorId);
+    const { error } = await updateDoctor(doctorId, {
+      full_name: profile.full_name,
+      email: profile.email,
+      phone: profile.phone,
+      specialization_id: profile.specialization_id,
+    });
 
     setSaving(false);
 
@@ -142,9 +141,7 @@ function DoctorProfile() {
 
     setChangingPassword(true);
 
-    const { error } = await supabase.auth.updateUser({
-      password: passwordData.new_password,
-    });
+    const { error } = await changeDoctorPassword(passwordData.new_password);
 
     setChangingPassword(false);
 
