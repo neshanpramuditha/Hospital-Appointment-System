@@ -12,7 +12,7 @@ function MyAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [timeFilter, setTimeFilter] = useState("all");
+  const [timeFilter, setTimeFilter] = useState("upcoming");
   const [sortBy, setSortBy] = useState("upcoming");
   const [loading, setLoading] = useState(true);
 
