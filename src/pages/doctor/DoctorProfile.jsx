@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import { Save, Stethoscope, UserRound } from "lucide-react";
+
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
 
 function DoctorProfile() {
-  const [doctors, setDoctors] = useState([]);
-  const [selectedId, setSelectedId] = useState("");
+  const { user } = useAuth();
+
+  const [doctorId, setDoctorId] = useState(null);
+
   const [profile, setProfile] = useState({
     full_name: "",
     email: "",
     phone: "",
     specialization_id: "",
   });
+
   const [specializations, setSpecializations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -18,59 +23,58 @@ function DoctorProfile() {
   const fetchData = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !user?.id) {
       setLoading(false);
       return;
     }
-
-    const { data: doctorsData, error: doctorsError } = await supabase
-      .from("doctors")
-      .select("*")
-      .order("full_name", { ascending: true });
 
     const { data: specData, error: specError } = await supabase
       .from("specializations")
       .select("*")
       .order("name", { ascending: true });
 
-    if (doctorsError) alert(doctorsError.message);
-    if (specError) alert(specError.message);
+    if (specError) {
+      alert(specError.message);
+      setLoading(false);
+      return;
+    }
 
-    setDoctors(doctorsData || []);
+    const { data: doctorData, error: doctorError } = await supabase
+      .from("doctors")
+      .select("*")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (doctorError) {
+      alert(doctorError.message);
+      setLoading(false);
+      return;
+    }
+
     setSpecializations(specData || []);
 
-    if (doctorsData?.length > 0) {
-      const first = doctorsData[0];
-      setSelectedId(first.id);
-      setProfile({
-        full_name: first.full_name || "",
-        email: first.email || "",
-        phone: first.phone || "",
-        specialization_id: first.specialization_id || "",
-      });
+    if (!doctorData) {
+      setDoctorId(null);
+      setLoading(false);
+      return;
     }
+
+    setDoctorId(doctorData.id);
+
+    setProfile({
+      full_name: doctorData.full_name || "",
+      email: doctorData.email || "",
+      phone: doctorData.phone || "",
+      specialization_id: doctorData.specialization_id || "",
+    });
 
     setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
-
-  const handleDoctorChange = (id) => {
-    setSelectedId(id);
-
-    const doctor = doctors.find((d) => d.id === id);
-
-    if (doctor) {
-      setProfile({
-        full_name: doctor.full_name || "",
-        email: doctor.email || "",
-        phone: doctor.phone || "",
-        specialization_id: doctor.specialization_id || "",
-      });
-    }
-  };
+  }, [user?.id]);
 
   const handleChange = (e) => {
     setProfile({
@@ -82,8 +86,8 @@ function DoctorProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedId) {
-      alert("Please select a doctor.");
+    if (!doctorId) {
+      alert("Doctor profile not found.");
       return;
     }
 
@@ -97,7 +101,7 @@ function DoctorProfile() {
         phone: profile.phone,
         specialization_id: profile.specialization_id,
       })
-      .eq("id", selectedId);
+      .eq("id", doctorId);
 
     setSaving(false);
 
@@ -116,9 +120,11 @@ function DoctorProfile() {
         <p className="mb-1 text-sm font-medium text-white/80">
           Doctor Portal
         </p>
+
         <h1 className="text-2xl font-bold md:text-3xl">Doctor Profile</h1>
+
         <p className="mt-1 max-w-lg text-sm text-white/80">
-          View and update doctor profile information.
+          View and update your doctor profile information.
         </p>
       </div>
 
@@ -133,35 +139,24 @@ function DoctorProfile() {
               Profile Information
             </h2>
             <p className="text-sm text-gray-500">
-              Update doctor personal and specialization details.
+              Update your personal and specialization details.
             </p>
           </div>
         </div>
 
         {loading ? (
           <p className="py-10 text-center text-gray-500">Loading profile...</p>
-        ) : doctors.length === 0 ? (
+        ) : !doctorId ? (
           <p className="py-10 text-center text-gray-500">
-            No doctor profile found.
+            No doctor profile found for this account.
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-5">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Select Doctor
-              </label>
-
-              <select
-                value={selectedId}
-                onChange={(e) => handleDoctorChange(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
-              >
-                {doctors.map((doctor) => (
-                  <option key={doctor.id} value={doctor.id}>
-                    Dr. {doctor.full_name}
-                  </option>
-                ))}
-              </select>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Doctor</p>
+              <h3 className="mt-1 font-bold text-primary">
+                Dr. {profile.full_name || "N/A"}
+              </h3>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">

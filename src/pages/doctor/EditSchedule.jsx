@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
+
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
 
 function EditSchedule() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [doctors, setDoctors] = useState([]);
+  const today = new Date().toISOString().split("T")[0];
+
+  const [doctor, setDoctor] = useState(null);
   const [schedule, setSchedule] = useState({
-    doctor_id: "",
     available_date: "",
     start_time: "",
     end_time: "",
@@ -21,12 +25,12 @@ function EditSchedule() {
   const fetchData = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !user?.id) {
       setLoading(false);
       return;
     }
 
-    const { data: doctorsData, error: doctorsError } = await supabase
+    const { data: doctorData, error: doctorError } = await supabase
       .from("doctors")
       .select(`
         id,
@@ -36,11 +40,20 @@ function EditSchedule() {
           name
         )
       `)
-      .order("full_name", { ascending: true });
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
 
-    if (doctorsError) {
-      alert(doctorsError.message);
+    if (doctorError) {
+      alert(doctorError.message);
       setLoading(false);
+      return;
+    }
+
+    if (!doctorData) {
+      alert("Doctor profile not found.");
+      setLoading(false);
+      navigate("/doctor/schedules");
       return;
     }
 
@@ -48,7 +61,9 @@ function EditSchedule() {
       .from("schedules")
       .select("*")
       .eq("id", id)
-      .single();
+      .eq("doctor_id", doctorData.id)
+      .limit(1)
+      .maybeSingle();
 
     if (scheduleError) {
       alert(scheduleError.message);
@@ -56,9 +71,15 @@ function EditSchedule() {
       return;
     }
 
-    setDoctors(doctorsData || []);
+    if (!scheduleData) {
+      alert("Schedule not found or you do not have permission to edit it.");
+      setLoading(false);
+      navigate("/doctor/schedules");
+      return;
+    }
+
+    setDoctor(doctorData);
     setSchedule({
-      doctor_id: scheduleData.doctor_id || "",
       available_date: scheduleData.available_date || "",
       start_time: scheduleData.start_time || "",
       end_time: scheduleData.end_time || "",
@@ -69,7 +90,7 @@ function EditSchedule() {
 
   useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [id, user?.id]);
 
   const handleChange = (e) => {
     setSchedule({
@@ -81,17 +102,33 @@ function EditSchedule() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!doctor?.id) {
+      alert("Doctor profile not found.");
+      return;
+    }
+
+    if (schedule.available_date < today) {
+      alert("Cannot select a past date.");
+      return;
+    }
+
+    if (schedule.start_time >= schedule.end_time) {
+      alert("End time must be after start time.");
+      return;
+    }
+
     setSaving(true);
 
     const { error } = await supabase
       .from("schedules")
       .update({
-        doctor_id: schedule.doctor_id,
+        doctor_id: doctor.id,
         available_date: schedule.available_date,
         start_time: schedule.start_time,
         end_time: schedule.end_time,
       })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("doctor_id", doctor.id);
 
     setSaving(false);
 
@@ -114,7 +151,7 @@ function EditSchedule() {
             </p>
             <h1 className="text-2xl font-bold md:text-3xl">Edit Schedule</h1>
             <p className="mt-1 max-w-lg text-sm text-white/80">
-              Update available date and time slot.
+              Update your available date and time slot.
             </p>
           </div>
 
@@ -139,7 +176,7 @@ function EditSchedule() {
               Schedule Information
             </h2>
             <p className="text-sm text-gray-500">
-              Modify schedule details below.
+              Modify your schedule details below.
             </p>
           </div>
         </div>
@@ -148,26 +185,14 @@ function EditSchedule() {
           <p className="py-10 text-center text-gray-500">Loading schedule...</p>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-5">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Doctor
-              </label>
-
-              <select
-                name="doctor_id"
-                value={schedule.doctor_id}
-                onChange={handleChange}
-                required
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="">Select doctor</option>
-                {doctors.map((doctor) => (
-                  <option key={doctor.id} value={doctor.id}>
-                    Dr. {doctor.full_name} -{" "}
-                    {doctor.specializations?.name || "General Doctor"}
-                  </option>
-                ))}
-              </select>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Doctor</p>
+              <h3 className="mt-1 font-bold text-primary">
+                Dr. {doctor?.full_name || "N/A"}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {doctor?.specializations?.name || "General Doctor"}
+              </p>
             </div>
 
             <div className="grid gap-5 md:grid-cols-3">
@@ -175,6 +200,7 @@ function EditSchedule() {
                 label="Available Date"
                 name="available_date"
                 type="date"
+                min={today}
                 value={schedule.available_date}
                 onChange={handleChange}
                 required
@@ -224,7 +250,15 @@ function EditSchedule() {
   );
 }
 
-function Input({ label, name, value, onChange, type = "text", required }) {
+function Input({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  required,
+  min,
+}) {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -235,6 +269,7 @@ function Input({ label, name, value, onChange, type = "text", required }) {
         type={type}
         name={name}
         value={value}
+        min={min}
         onChange={onChange}
         required={required}
         className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"

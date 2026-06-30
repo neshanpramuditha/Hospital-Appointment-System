@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
+
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
 
 function AddSchedule() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [doctors, setDoctors] = useState([]);
+  const [doctor, setDoctor] = useState(null);
+
   const [schedule, setSchedule] = useState({
-    doctor_id: "",
     available_date: "",
     start_time: "",
     end_time: "",
@@ -17,10 +20,12 @@ function AddSchedule() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const fetchDoctors = async () => {
+  const today = new Date().toISOString().split("T")[0];
+
+  const fetchDoctor = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !user?.id) {
       setLoading(false);
       return;
     }
@@ -35,17 +40,23 @@ function AddSchedule() {
           name
         )
       `)
-      .order("full_name", { ascending: true });
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
 
-    if (error) alert(error.message);
-    else setDoctors(data || []);
+    if (error) {
+      alert(error.message);
+      setLoading(false);
+      return;
+    }
 
+    setDoctor(data);
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchDoctors();
-  }, []);
+    fetchDoctor();
+  }, [user?.id]);
 
   const handleChange = (e) => {
     setSchedule({
@@ -57,8 +68,18 @@ function AddSchedule() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!schedule.doctor_id) {
-      alert("Please select a doctor.");
+    if (!doctor?.id) {
+      alert("Doctor profile not found.");
+      return;
+    }
+
+    if (schedule.available_date < today) {
+      alert("Cannot add a schedule for a past date.");
+      return;
+    }
+
+    if (schedule.start_time >= schedule.end_time) {
+      alert("End time must be after start time.");
       return;
     }
 
@@ -66,7 +87,7 @@ function AddSchedule() {
 
     const { error } = await supabase.from("schedules").insert([
       {
-        doctor_id: schedule.doctor_id,
+        doctor_id: doctor.id,
         available_date: schedule.available_date,
         start_time: schedule.start_time,
         end_time: schedule.end_time,
@@ -92,9 +113,11 @@ function AddSchedule() {
             <p className="mb-1 text-sm font-medium text-white/80">
               Doctor Portal
             </p>
+
             <h1 className="text-2xl font-bold md:text-3xl">Add Schedule</h1>
+
             <p className="mt-1 max-w-lg text-sm text-white/80">
-              Add available date and time slot for appointments.
+              Add your available date and time slot for appointments.
             </p>
           </div>
 
@@ -119,35 +142,29 @@ function AddSchedule() {
               Schedule Information
             </h2>
             <p className="text-sm text-gray-500">
-              Select doctor and enter available time details.
+              This schedule will be added to your doctor profile.
             </p>
           </div>
         </div>
 
         {loading ? (
-          <p className="py-10 text-center text-gray-500">Loading doctors...</p>
+          <p className="py-10 text-center text-gray-500">
+            Loading doctor profile...
+          </p>
+        ) : !doctor ? (
+          <p className="py-10 text-center text-gray-500">
+            Doctor profile not found for this account.
+          </p>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-5">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Doctor
-              </label>
-
-              <select
-                name="doctor_id"
-                value={schedule.doctor_id}
-                onChange={handleChange}
-                required
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="">Select doctor</option>
-                {doctors.map((doctor) => (
-                  <option key={doctor.id} value={doctor.id}>
-                    Dr. {doctor.full_name} -{" "}
-                    {doctor.specializations?.name || "General Doctor"}
-                  </option>
-                ))}
-              </select>
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+              <p className="text-sm text-gray-500">Doctor</p>
+              <h3 className="mt-1 font-bold text-primary">
+                Dr. {doctor.full_name}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {doctor.specializations?.name || "General Doctor"}
+              </p>
             </div>
 
             <div className="grid gap-5 md:grid-cols-3">
@@ -155,6 +172,7 @@ function AddSchedule() {
                 label="Available Date"
                 name="available_date"
                 type="date"
+                min={today}
                 value={schedule.available_date}
                 onChange={handleChange}
                 required
@@ -204,7 +222,15 @@ function AddSchedule() {
   );
 }
 
-function Input({ label, name, value, onChange, type = "text", required }) {
+function Input({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  required,
+  min,
+}) {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -215,6 +241,7 @@ function Input({ label, name, value, onChange, type = "text", required }) {
         type={type}
         name={name}
         value={value}
+        min={min}
         onChange={onChange}
         required={required}
         className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
