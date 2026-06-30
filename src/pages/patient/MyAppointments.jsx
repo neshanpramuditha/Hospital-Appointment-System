@@ -25,7 +25,7 @@ function MyAppointments() {
   const [sortBy, setSortBy] = useState("upcoming");
   const [loading, setLoading] = useState(true);
 
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -76,7 +76,8 @@ function MyAppointments() {
         )
       `)
       .eq("patient_id", patient.id)
-      .order("appointment_date", { ascending: true });
+      .order("appointment_date", { ascending: true })
+      .order("appointment_time", { ascending: true });
 
     if (error) alert(error.message);
     else setAppointments(data || []);
@@ -88,12 +89,29 @@ function MyAppointments() {
     fetchAppointments();
   }, [user?.id]);
 
-  const isExpired = (appointment) => {
-    return (
-      appointment.appointment_date < today &&
-      appointment.status !== "completed" &&
-      appointment.status !== "cancelled"
+  const getAppointmentDateTime = (appointment) => {
+    if (!appointment.appointment_date || !appointment.appointment_time) {
+      return null;
+    }
+
+    return new Date(
+      `${appointment.appointment_date}T${appointment.appointment_time}`
     );
+  };
+
+  const isExpired = (appointment) => {
+    if (
+      appointment.status === "completed" ||
+      appointment.status === "cancelled"
+    ) {
+      return false;
+    }
+
+    const appointmentDateTime = getAppointmentDateTime(appointment);
+
+    if (!appointmentDateTime) return false;
+
+    return appointmentDateTime < now;
   };
 
   const displayStatus = (appointment) => {
@@ -158,7 +176,7 @@ function MyAppointments() {
     }
 
     if (timeFilter === "upcoming") {
-      result = result.filter((appointment) => appointment.appointment_date >= today);
+      result = result.filter((appointment) => !isExpired(appointment));
     }
 
     if (timeFilter === "expired") {
@@ -166,18 +184,29 @@ function MyAppointments() {
     }
 
     if (timeFilter === "past") {
-      result = result.filter((appointment) => appointment.appointment_date < today);
+      result = result.filter((appointment) => {
+        const appointmentDateTime = getAppointmentDateTime(appointment);
+        return appointmentDateTime && appointmentDateTime < now;
+      });
     }
 
     result.sort((a, b) => {
-      const dateA = `${a.appointment_date} ${a.appointment_time}`;
-      const dateB = `${b.appointment_date} ${b.appointment_time}`;
+      const dateA = getAppointmentDateTime(a);
+      const dateB = getAppointmentDateTime(b);
 
-      if (sortBy === "latest") return dateB.localeCompare(dateA);
-      if (sortBy === "expired_first") return Number(isExpired(b)) - Number(isExpired(a));
-      if (sortBy === "status") return displayStatus(a).localeCompare(displayStatus(b));
+      if (!dateA || !dateB) return 0;
 
-      return dateA.localeCompare(dateB);
+      if (sortBy === "latest") return dateB - dateA;
+
+      if (sortBy === "expired_first") {
+        return Number(isExpired(b)) - Number(isExpired(a));
+      }
+
+      if (sortBy === "status") {
+        return displayStatus(a).localeCompare(displayStatus(b));
+      }
+
+      return dateA - dateB;
     });
 
     return result;
@@ -201,9 +230,7 @@ function MyAppointments() {
   const countByStatus = (status) =>
     appointments.filter((item) => displayStatus(item) === status).length;
 
-  const upcomingCount = appointments.filter(
-    (item) => item.appointment_date >= today
-  ).length;
+  const upcomingCount = appointments.filter((item) => !isExpired(item)).length;
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -314,6 +341,7 @@ function MyAppointments() {
         <div className="grid gap-4">
           {filteredAppointments.map((appointment) => {
             const status = displayStatus(appointment);
+
             const canCancel =
               !isExpired(appointment) &&
               (appointment.status === "pending" ||
