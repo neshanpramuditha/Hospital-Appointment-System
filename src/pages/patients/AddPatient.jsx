@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Save, UserRound } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { isSupabaseConfigured } from "../../services/supabase";
+import { createPatientAccount } from "../../services/patientService";
 
 function AddPatient() {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ function AddPatient() {
     email: "",
     phone: "",
     date_of_birth: "",
+    password: "",
+    confirm_password: "",
   });
 
   const [saving, setSaving] = useState(false);
@@ -30,26 +33,29 @@ function AddPatient() {
       return;
     }
 
+    if (patient.password !== patient.confirm_password) {
+      alert("Passwords do not match.");
+      return;
+    }
+
     setSaving(true);
 
-    const { error } = await supabase.from("patients").insert([
-      {
+    try {
+      await createPatientAccount({
         full_name: patient.full_name,
         email: patient.email,
         phone: patient.phone,
         date_of_birth: patient.date_of_birth,
-      },
-    ]);
+        password: patient.password,
+      });
 
-    setSaving(false);
-
-    if (error) {
+      alert("Patient added successfully");
+      navigate("/patients");
+    } catch (error) {
       alert(error.message);
-      return;
+    } finally {
+      setSaving(false);
     }
-
-    alert("Patient added successfully");
-    navigate("/patients");
   };
 
   return (
@@ -113,6 +119,7 @@ function AddPatient() {
                 name="email"
                 value={patient.email}
                 onChange={handleChange}
+                required
                 placeholder="Enter email"
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
               />
@@ -142,6 +149,38 @@ function AddPatient() {
                 name="date_of_birth"
                 value={patient.date_of_birth}
                 onChange={handleChange}
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={patient.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                placeholder="Enter password"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                name="confirm_password"
+                value={patient.confirm_password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                placeholder="Confirm password"
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
               />
             </div>

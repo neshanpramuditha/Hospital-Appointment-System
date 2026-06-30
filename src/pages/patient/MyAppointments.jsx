@@ -12,11 +12,13 @@ import {
 
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import { getPatientByUserId } from "../../services/patientService";
 
 function MyAppointments() {
   const { user } = useAuth();
 
   const [appointments, setAppointments] = useState([]);
+  const [patientId, setPatientId] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
   const [timeFilter, setTimeFilter] = useState("upcoming");
@@ -34,12 +36,8 @@ function MyAppointments() {
       return;
     }
 
-    const { data: patient, error: patientError } = await supabase
-      .from("patients")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: patient, error: patientError } =
+      await getPatientByUserId(user.id);
 
     if (patientError) {
       alert(patientError.message);
@@ -48,10 +46,13 @@ function MyAppointments() {
     }
 
     if (!patient) {
+      setPatientId(null);
       setAppointments([]);
       setLoading(false);
       return;
     }
+
+    setPatientId(patient.id);
 
     const { data, error } = await supabase
       .from("appointments")
@@ -105,10 +106,16 @@ function MyAppointments() {
       return;
     }
 
+    if (!patientId) {
+      alert("Patient profile not found.");
+      return;
+    }
+
     const { error } = await supabase
       .from("appointments")
       .update({ status: "cancelled" })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("patient_id", patientId);
 
     if (error) {
       alert(error.message);

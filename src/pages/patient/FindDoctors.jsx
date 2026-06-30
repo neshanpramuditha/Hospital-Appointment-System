@@ -12,9 +12,13 @@ import {
   X,
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
+import { getPatientByUserId } from "../../services/patientService";
 
 function FindDoctors() {
+  const { user } = useAuth();
   const [doctors, setDoctors] = useState([]);
+  const [, setPatientId] = useState(null);
   const [search, setSearch] = useState("");
   const [specialization, setSpecialization] = useState("all");
   const [sortBy, setSortBy] = useState("name_asc");
@@ -23,11 +27,29 @@ function FindDoctors() {
   const fetchDoctors = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !user?.id) {
       setDoctors([]);
       setLoading(false);
       return;
     }
+
+    const { data: patient, error: patientError } =
+      await getPatientByUserId(user.id);
+
+    if (patientError) {
+      alert(patientError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!patient) {
+      setPatientId(null);
+      setDoctors([]);
+      setLoading(false);
+      return;
+    }
+
+    setPatientId(patient.id);
 
     const { data, error } = await supabase
       .from("doctors")
@@ -56,7 +78,7 @@ function FindDoctors() {
 
   useEffect(() => {
     fetchDoctors();
-  }, []);
+  }, [user?.id]);
 
   const specializations = useMemo(() => {
     const values = doctors

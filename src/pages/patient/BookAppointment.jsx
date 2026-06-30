@@ -11,6 +11,7 @@ import {
 
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import { getPatientByUserId } from "../../services/patientService";
 
 function BookAppointment() {
   const { doctorId } = useParams();
@@ -38,12 +39,8 @@ function BookAppointment() {
       return;
     }
 
-    const { data: patientData, error: patientError } = await supabase
-      .from("patients")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: patientData, error: patientError } =
+      await getPatientByUserId(user.id);
 
     if (patientError) {
       alert(patientError.message);

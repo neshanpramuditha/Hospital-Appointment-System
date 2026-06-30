@@ -11,21 +11,44 @@ import {
   UserRound,
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
+import { getPatientByUserId } from "../../services/patientService";
 
 function PatientDoctorDetails() {
   const { id } = useParams();
+  const { user } = useAuth();
 
   const [doctor, setDoctor] = useState(null);
+  const [, setPatientId] = useState(null);
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDoctorDetails = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !user?.id) {
       setLoading(false);
       return;
     }
+
+    const { data: patient, error: patientError } =
+      await getPatientByUserId(user.id);
+
+    if (patientError) {
+      alert(patientError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!patient) {
+      setPatientId(null);
+      setDoctor(null);
+      setSchedules([]);
+      setLoading(false);
+      return;
+    }
+
+    setPatientId(patient.id);
 
     const { data: doctorData, error: doctorError } = await supabase
       .from("doctors")
@@ -70,7 +93,7 @@ function PatientDoctorDetails() {
 
   useEffect(() => {
     fetchDoctorDetails();
-  }, [id]);
+  }, [id, user?.id]);
 
   if (loading) {
     return (

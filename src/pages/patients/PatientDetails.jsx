@@ -8,7 +8,8 @@ import {
   Phone,
   UserRound,
 } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { isSupabaseConfigured } from "../../services/supabase";
+import { getPatientById } from "../../services/patientService";
 
 function PatientDetails() {
   const { id } = useParams();
@@ -24,13 +25,7 @@ function PatientDetails() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("patients")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    console.log(data);
+    const { data, error } = await getPatientById(id);
 
     if (error) {
       alert(error.message);
