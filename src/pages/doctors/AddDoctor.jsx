@@ -7,11 +7,14 @@ function AddDoctor() {
   const navigate = useNavigate();
 
   const [specializations, setSpecializations] = useState([]);
+
   const [doctor, setDoctor] = useState({
     full_name: "",
     email: "",
     phone: "",
     specialization_id: "",
+    password: "",
+    confirm_password: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -50,10 +53,55 @@ function AddDoctor() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (doctor.password.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (doctor.password !== doctor.confirm_password) {
+      alert("Passwords do not match.");
+      return;
+    }
+
     setSaving(true);
 
-    const { error } = await supabase.from("doctors").insert([
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: doctor.email,
+      password: doctor.password,
+    });
+
+    if (authError) {
+      setSaving(false);
+      alert(authError.message);
+      return;
+    }
+
+    const userId = authData.user?.id;
+
+    if (!userId) {
+      setSaving(false);
+      alert("Doctor auth account was not created.");
+      return;
+    }
+
+    const { error: userError } = await supabase.from("users").insert([
       {
+        id: userId,
+        full_name: doctor.full_name,
+        email: doctor.email,
+        role: "doctor",
+      },
+    ]);
+
+    if (userError) {
+      setSaving(false);
+      alert(userError.message);
+      return;
+    }
+
+    const { error: doctorError } = await supabase.from("doctors").insert([
+      {
+        user_id: userId,
         full_name: doctor.full_name,
         email: doctor.email,
         phone: doctor.phone,
@@ -63,12 +111,12 @@ function AddDoctor() {
 
     setSaving(false);
 
-    if (error) {
-      alert(error.message);
+    if (doctorError) {
+      alert(doctorError.message);
       return;
     }
 
-    alert("Doctor added successfully");
+    alert("Doctor account created successfully");
     navigate("/doctors");
   };
 
@@ -80,9 +128,11 @@ function AddDoctor() {
             <p className="mb-1 text-sm font-medium text-white/80">
               Admin Module
             </p>
-            <h1 className="text-2xl font-bold md:text-3xl">Add Doctor</h1>
+            <h1 className="text-2xl font-bold md:text-3xl">
+              Add Doctor Account
+            </h1>
             <p className="mt-1 max-w-lg text-sm text-white/80">
-              Register a new doctor with specialization and contact details.
+              Create doctor login account and doctor profile.
             </p>
           </div>
 
@@ -105,7 +155,7 @@ function AddDoctor() {
           <div>
             <h2 className="text-xl font-bold text-primary">Doctor Details</h2>
             <p className="text-sm text-gray-500">
-              Fill the doctor information below.
+              Fill doctor account and profile information.
             </p>
           </div>
         </div>
@@ -131,6 +181,7 @@ function AddDoctor() {
                 type="email"
                 value={doctor.email}
                 onChange={handleChange}
+                required
               />
 
               <Input
@@ -160,6 +211,29 @@ function AddDoctor() {
                   ))}
                 </select>
               </div>
+
+              <Input
+                label="Password"
+                name="password"
+                type="password"
+                value={doctor.password}
+                onChange={handleChange}
+                required
+              />
+
+              <Input
+                label="Confirm Password"
+                name="confirm_password"
+                type="password"
+                value={doctor.confirm_password}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-700">
+              Password is saved in Supabase Authentication only, not in the
+              doctors table.
             </div>
 
             <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -177,7 +251,7 @@ function AddDoctor() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-accent px-5 py-3 font-semibold text-white shadow-md hover:opacity-90 disabled:opacity-60"
               >
                 <Save size={18} />
-                {saving ? "Saving..." : "Save Doctor"}
+                {saving ? "Creating..." : "Create Doctor Account"}
               </button>
             </div>
           </form>
