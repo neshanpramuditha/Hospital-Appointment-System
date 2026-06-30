@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, UserRound } from "lucide-react";
+
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { createDoctorAccount } from "../../services/doctorService";
 
 function AddDoctor() {
   const navigate = useNavigate();
@@ -63,61 +65,18 @@ function AddDoctor() {
       return;
     }
 
-    setSaving(true);
+    try {
+      setSaving(true);
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: doctor.email,
-      password: doctor.password,
-    });
+      await createDoctorAccount(doctor);
 
-    if (authError) {
+      alert("Doctor account created successfully");
+      navigate("/doctors");
+    } catch (error) {
+      alert(error.message);
+    } finally {
       setSaving(false);
-      alert(authError.message);
-      return;
     }
-
-    const userId = authData.user?.id;
-
-    if (!userId) {
-      setSaving(false);
-      alert("Doctor auth account was not created.");
-      return;
-    }
-
-    const { error: userError } = await supabase.from("users").insert([
-      {
-        id: userId,
-        full_name: doctor.full_name,
-        email: doctor.email,
-        role: "doctor",
-      },
-    ]);
-
-    if (userError) {
-      setSaving(false);
-      alert(userError.message);
-      return;
-    }
-
-    const { error: doctorError } = await supabase.from("doctors").insert([
-      {
-        user_id: userId,
-        full_name: doctor.full_name,
-        email: doctor.email,
-        phone: doctor.phone,
-        specialization_id: doctor.specialization_id,
-      },
-    ]);
-
-    setSaving(false);
-
-    if (doctorError) {
-      alert(doctorError.message);
-      return;
-    }
-
-    alert("Doctor account created successfully");
-    navigate("/doctors");
   };
 
   return (
