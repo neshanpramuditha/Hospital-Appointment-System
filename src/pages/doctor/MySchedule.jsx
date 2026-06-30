@@ -12,7 +12,7 @@ function MySchedule() {
   const [schedules, setSchedules] = useState([]);
   const [doctorId, setDoctorId] = useState(null);
   const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("upcoming");
   const [sortBy, setSortBy] = useState("upcoming");
   const [loading, setLoading] = useState(true);
 
@@ -149,7 +149,7 @@ function MySchedule() {
 
   const clearFilters = () => {
     setSearch("");
-    setDateFilter("all");
+    setDateFilter("upcoming");
     setSortBy("upcoming");
   };
 
@@ -209,7 +209,7 @@ function MySchedule() {
             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
           >
             <option value="all">All Dates</option>
-            <option value="upcoming">Upcoming Only</option>
+            <option value="upcoming" >Upcoming Only</option>
             <option value="expired">Expired Only</option>
           </select>
 
