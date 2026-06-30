@@ -10,7 +10,11 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { isSupabaseConfigured } from "../../services/supabase";
+import {
+  deletePatient as deletePatientRecord,
+  getPatients,
+} from "../../services/patientService";
 
 function PatientsList() {
   const [patients, setPatients] = useState([]);
@@ -29,10 +33,7 @@ function PatientsList() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("patients")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await getPatients();
 
     if (error) alert(error.message);
     else setPatients(data || []);
@@ -48,7 +49,7 @@ function PatientsList() {
     if (!window.confirm("Are you sure you want to delete this patient?"))
       return;
 
-    const { error } = await supabase.from("patients").delete().eq("id", id);
+    const { error } = await deletePatientRecord(id);
 
     if (error) {
       alert(error.message);

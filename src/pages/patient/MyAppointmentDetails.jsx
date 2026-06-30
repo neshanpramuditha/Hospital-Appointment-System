@@ -10,19 +10,44 @@ import {
   UserRound,
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
+import { getPatientByUserId } from "../../services/patientService";
 
 function MyAppointmentDetails() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [appointment, setAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchAppointment = async () => {
     setLoading(true);
 
+    if (!user?.id) {
+      setAppointment(null);
+      setLoading(false);
+      return;
+    }
+
+    const { data: patient, error: patientError } =
+      await getPatientByUserId(user.id);
+
+    if (patientError) {
+      alert(patientError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!patient) {
+      setAppointment(null);
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("appointments")
       .select(`
         id,
+        patient_id,
         appointment_date,
         appointment_time,
         status,
@@ -45,6 +70,7 @@ function MyAppointmentDetails() {
         )
       `)
       .eq("id", id)
+      .eq("patient_id", patient.id)
       .single();
 
     if (error) alert(error.message);
@@ -56,7 +82,7 @@ function MyAppointmentDetails() {
   useEffect(() => {
     if (isSupabaseConfigured) fetchAppointment();
     else setLoading(false);
-  }, [id]);
+  }, [id, user?.id]);
 
   if (loading) return <p className="text-gray-500">Loading appointment...</p>;
 

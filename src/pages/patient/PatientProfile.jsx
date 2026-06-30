@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
-import { Save, UserRound } from "lucide-react";
+import { LockKeyhole, Save, UserRound } from "lucide-react";
 
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { isSupabaseConfigured } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import {
+  changePatientPassword,
+  getPatientByUserId,
+  updatePatient,
+} from "../../services/patientService";
 
 function PatientProfile() {
   const { user } = useAuth();
@@ -16,8 +21,14 @@ function PatientProfile() {
     date_of_birth: "",
   });
 
+  const [security, setSecurity] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const fetchPatient = async () => {
     setLoading(true);
@@ -27,12 +38,7 @@ function PatientProfile() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("patients")
-      .select("*")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data, error } = await getPatientByUserId(user.id);
 
     if (error) {
       alert(error.message);
@@ -69,6 +75,13 @@ function PatientProfile() {
     });
   };
 
+  const handleSecurityChange = (e) => {
+    setSecurity({
+      ...security,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -79,15 +92,12 @@ function PatientProfile() {
 
     setSaving(true);
 
-    const { error } = await supabase
-      .from("patients")
-      .update({
+    const { error } = await updatePatient(patientId, {
         full_name: profile.full_name,
         email: profile.email,
         phone: profile.phone,
         date_of_birth: profile.date_of_birth,
-      })
-      .eq("id", patientId);
+      });
 
     setSaving(false);
 
@@ -98,6 +108,32 @@ function PatientProfile() {
 
     alert("Profile updated successfully");
     fetchPatient();
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+
+    if (security.newPassword !== security.confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    setChangingPassword(true);
+
+    const { error } = await changePatientPassword(security.newPassword);
+
+    setChangingPassword(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setSecurity({
+      newPassword: "",
+      confirmPassword: "",
+    });
+    alert("Password updated successfully");
   };
 
   return (
@@ -114,7 +150,7 @@ function PatientProfile() {
         </p>
       </div>
 
-      <div className="rounded-2xl bg-white p-5 shadow-lg md:p-6">
+      <div className="mb-5 rounded-2xl bg-white p-5 shadow-lg md:p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white">
             <UserRound size={22} />
@@ -185,11 +221,69 @@ function PatientProfile() {
           </form>
         )}
       </div>
+
+      <div className="rounded-2xl bg-white p-5 shadow-lg md:p-6">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white">
+            <LockKeyhole size={22} />
+          </div>
+
+          <div>
+            <h2 className="text-xl font-bold text-primary">Security</h2>
+            <p className="text-sm text-gray-500">
+              Change your account password.
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handlePasswordChange} className="grid gap-5">
+          <div className="grid gap-5 md:grid-cols-2">
+            <Input
+              label="New Password"
+              name="newPassword"
+              type="password"
+              value={security.newPassword}
+              onChange={handleSecurityChange}
+              required
+              minLength={6}
+            />
+
+            <Input
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              value={security.confirmPassword}
+              onChange={handleSecurityChange}
+              required
+              minLength={6}
+            />
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              type="submit"
+              disabled={changingPassword}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-accent px-5 py-3 font-semibold text-white shadow-md hover:opacity-90 disabled:opacity-60"
+            >
+              <Save size={18} />
+              {changingPassword ? "Updating..." : "Update Password"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
 
-function Input({ label, name, value, onChange, type = "text", required }) {
+function Input({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  required,
+  minLength,
+}) {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -202,6 +296,7 @@ function Input({ label, name, value, onChange, type = "text", required }) {
         value={value}
         onChange={onChange}
         required={required}
+        minLength={minLength}
         className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
       />
     </div>
