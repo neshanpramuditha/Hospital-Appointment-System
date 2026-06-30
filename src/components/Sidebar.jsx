@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Search,
   Stethoscope,
+  X,
   UserRound,
   Users,
 } from "lucide-react";
@@ -12,7 +13,7 @@ import {
 import { ROLES } from "../utils/roles";
 import { useAuth } from "../context/AuthContext";
 
-function Sidebar() {
+function Sidebar({ isOpen = false, onClose }) {
   const { role, profile } = useAuth();
 
   const currentRole = role || ROLES.PATIENT;
@@ -45,17 +46,32 @@ function Sidebar() {
   const activeLinks = links[currentRole] || links[ROLES.PATIENT];
 
   return (
-    <aside className="fixed left-0 top-0 z-50 h-screen w-64 bg-gradient-to-b from-primary via-secondary to-accent text-white shadow-xl">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">HMS</h1>
+    <aside
+      className={`fixed left-0 top-0 z-50 h-screen w-64 bg-gradient-to-b from-primary via-secondary to-accent text-white shadow-xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="flex items-start justify-between p-6">
+        <div>
+          <h1 className="text-2xl font-bold">HMS</h1>
 
-        <p className="text-sm capitalize text-white/80">
-          {currentRole} Panel
-        </p>
+          <p className="text-sm capitalize text-white/80">
+            {currentRole} Panel
+          </p>
 
-        <p className="mt-1 truncate text-xs text-white/70">
-          {profile?.full_name || "User"}
-        </p>
+          <p className="mt-1 truncate text-xs text-white/70">
+            {profile?.full_name || "User"}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          onClick={onClose}
+          className="rounded-lg p-2 text-white transition hover:bg-white/20 lg:hidden"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <nav className="space-y-2 px-4">
@@ -67,6 +83,7 @@ function Sidebar() {
               key={link.path}
               to={link.path}
               end={link.path.includes("dashboard")}
+              onClick={onClose}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
                   isActive
