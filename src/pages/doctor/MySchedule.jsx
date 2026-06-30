@@ -4,11 +4,13 @@ import { Calendar, Clock, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import { getDoctorByUserId } from "../../services/doctorService";
 
 function MySchedule() {
   const { user } = useAuth();
 
   const [schedules, setSchedules] = useState([]);
+  const [doctorId, setDoctorId] = useState(null);
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
   const [sortBy, setSortBy] = useState("upcoming");
@@ -21,16 +23,14 @@ function MySchedule() {
 
     if (!isSupabaseConfigured || !user?.id) {
       setSchedules([]);
+      setDoctorId(null);
       setLoading(false);
       return;
     }
 
-    const { data: doctor, error: doctorError } = await supabase
-      .from("doctors")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: doctor, error: doctorError } = await getDoctorByUserId(
+      user.id
+    );
 
     if (doctorError) {
       alert(doctorError.message);
@@ -40,9 +40,12 @@ function MySchedule() {
 
     if (!doctor) {
       setSchedules([]);
+      setDoctorId(null);
       setLoading(false);
       return;
     }
+
+    setDoctorId(doctor.id);
 
     const { data, error } = await supabase
       .from("schedules")
@@ -80,7 +83,16 @@ function MySchedule() {
   const deleteSchedule = async (id) => {
     if (!window.confirm("Are you sure you want to delete this schedule?")) return;
 
-    const { error } = await supabase.from("schedules").delete().eq("id", id);
+    if (!doctorId) {
+      alert("Doctor profile not found.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("schedules")
+      .delete()
+      .eq("id", id)
+      .eq("doctor_id", doctorId);
 
     if (error) {
       alert(error.message);

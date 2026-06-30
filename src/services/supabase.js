@@ -13,6 +13,7 @@ const createNoopClient = () => ({
     signUp: () => Promise.resolve({ data: { user: null }, error: new Error('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.') }),
     signOut: () => Promise.resolve({ error: new Error('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.') }),
     signInWithOAuth: () => Promise.resolve({ data: { url: null }, error: new Error('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.') }),
+    updateUser: () => Promise.resolve({ data: { user: null }, error: new Error('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.') }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
   },
   from() {

@@ -4,6 +4,7 @@ import { Calendar, Eye, Mail, Phone, Search, UserRound, X } from "lucide-react";
 
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import { getDoctorByUserId } from "../../services/doctorService";
 
 function MyPatients() {
   const { user } = useAuth();
@@ -22,12 +23,9 @@ function MyPatients() {
       return;
     }
 
-    const { data: doctor, error: doctorError } = await supabase
-      .from("doctors")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: doctor, error: doctorError } = await getDoctorByUserId(
+      user.id
+    );
 
     if (doctorError) {
       alert(doctorError.message);

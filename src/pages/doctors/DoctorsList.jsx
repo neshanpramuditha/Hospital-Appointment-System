@@ -12,7 +12,8 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { isSupabaseConfigured } from "../../services/supabase";
+import { deleteDoctor, getDoctors } from "../../services/doctorService";
 
 function DoctorsList() {
   const [doctors, setDoctors] = useState([]);
@@ -29,21 +30,7 @@ function DoctorsList() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("doctors")
-      .select(`
-        id,
-        full_name,
-        email,
-        phone,
-        specialization_id,
-        created_at,
-        specializations (
-          id,
-          name
-        )
-      `)
-      .order("created_at", { ascending: false });
+    const { data, error } = await getDoctors();
 
     if (error) alert(error.message);
     else setDoctors(data || []);
@@ -55,10 +42,10 @@ function DoctorsList() {
     fetchDoctors();
   }, []);
 
-  const deleteDoctor = async (id) => {
+  const handleDeleteDoctor = async (id) => {
     if (!window.confirm("Are you sure you want to delete this doctor?")) return;
 
-    const { error } = await supabase.from("doctors").delete().eq("id", id);
+    const { error } = await deleteDoctor(id);
 
     if (error) {
       alert(error.message);
@@ -261,7 +248,7 @@ function DoctorsList() {
                   </Link>
 
                   <button
-                    onClick={() => deleteDoctor(doctor.id)}
+                    onClick={() => handleDeleteDoctor(doctor.id)}
                     className="flex flex-1 items-center justify-center rounded-xl bg-red-50 py-2 text-red-500"
                   >
                     <Trash2 size={17} />
@@ -349,7 +336,7 @@ function DoctorsList() {
                         </Link>
 
                         <button
-                          onClick={() => deleteDoctor(doctor.id)}
+                          onClick={() => handleDeleteDoctor(doctor.id)}
                           className="rounded-lg bg-red-50 p-2 text-red-500 hover:bg-red-500 hover:text-white"
                         >
                           <Trash2 size={17} />

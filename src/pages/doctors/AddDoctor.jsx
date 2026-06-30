@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, UserRound } from "lucide-react";
+
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { createDoctorAccount } from "../../services/doctorService";
 
 function AddDoctor() {
   const navigate = useNavigate();
 
   const [specializations, setSpecializations] = useState([]);
+
   const [doctor, setDoctor] = useState({
     full_name: "",
     email: "",
     phone: "",
     specialization_id: "",
+    password: "",
+    confirm_password: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -50,26 +55,34 @@ function AddDoctor() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setSaving(true);
+    if (doctor.password.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
 
-    const { error } = await supabase.from("doctors").insert([
-      {
+    if (doctor.password !== doctor.confirm_password) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      await createDoctorAccount({
         full_name: doctor.full_name,
         email: doctor.email,
         phone: doctor.phone,
         specialization_id: doctor.specialization_id,
-      },
-    ]);
+        password: doctor.password,
+      });
 
-    setSaving(false);
-
-    if (error) {
+      alert("Doctor account created successfully");
+      navigate("/doctors");
+    } catch (error) {
       alert(error.message);
-      return;
+    } finally {
+      setSaving(false);
     }
-
-    alert("Doctor added successfully");
-    navigate("/doctors");
   };
 
   return (
@@ -80,9 +93,11 @@ function AddDoctor() {
             <p className="mb-1 text-sm font-medium text-white/80">
               Admin Module
             </p>
-            <h1 className="text-2xl font-bold md:text-3xl">Add Doctor</h1>
+            <h1 className="text-2xl font-bold md:text-3xl">
+              Add Doctor Account
+            </h1>
             <p className="mt-1 max-w-lg text-sm text-white/80">
-              Register a new doctor with specialization and contact details.
+              Create doctor login account and doctor profile.
             </p>
           </div>
 
@@ -105,7 +120,7 @@ function AddDoctor() {
           <div>
             <h2 className="text-xl font-bold text-primary">Doctor Details</h2>
             <p className="text-sm text-gray-500">
-              Fill the doctor information below.
+              Fill doctor account and profile information.
             </p>
           </div>
         </div>
@@ -131,6 +146,7 @@ function AddDoctor() {
                 type="email"
                 value={doctor.email}
                 onChange={handleChange}
+                required
               />
 
               <Input
@@ -160,6 +176,24 @@ function AddDoctor() {
                   ))}
                 </select>
               </div>
+
+              <Input
+                label="Password"
+                name="password"
+                type="password"
+                value={doctor.password}
+                onChange={handleChange}
+                required
+              />
+
+              <Input
+                label="Confirm Password"
+                name="confirm_password"
+                type="password"
+                value={doctor.confirm_password}
+                onChange={handleChange}
+                required
+              />
             </div>
 
             <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -177,7 +211,7 @@ function AddDoctor() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-accent px-5 py-3 font-semibold text-white shadow-md hover:opacity-90 disabled:opacity-60"
               >
                 <Save size={18} />
-                {saving ? "Saving..." : "Save Doctor"}
+                {saving ? "Creating..." : "Create Doctor Account"}
               </button>
             </div>
           </form>

@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
-import { Save, Stethoscope, UserRound } from "lucide-react";
+import { Save, Shield, Stethoscope, UserRound } from "lucide-react";
 
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import {
+  changeDoctorPassword,
+  getDoctorByUserId,
+  updateDoctor,
+} from "../../services/doctorService";
 
 function DoctorProfile() {
   const { user } = useAuth();
@@ -16,9 +21,15 @@ function DoctorProfile() {
     specialization_id: "",
   });
 
+  const [passwordData, setPasswordData] = useState({
+    new_password: "",
+    confirm_password: "",
+  });
+
   const [specializations, setSpecializations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -39,12 +50,9 @@ function DoctorProfile() {
       return;
     }
 
-    const { data: doctorData, error: doctorError } = await supabase
-      .from("doctors")
-      .select("*")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: doctorData, error: doctorError } = await getDoctorByUserId(
+      user.id
+    );
 
     if (doctorError) {
       alert(doctorError.message);
@@ -83,6 +91,13 @@ function DoctorProfile() {
     });
   };
 
+  const handlePasswordInputChange = (e) => {
+    setPasswordData({
+      ...passwordData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -93,15 +108,12 @@ function DoctorProfile() {
 
     setSaving(true);
 
-    const { error } = await supabase
-      .from("doctors")
-      .update({
-        full_name: profile.full_name,
-        email: profile.email,
-        phone: profile.phone,
-        specialization_id: profile.specialization_id,
-      })
-      .eq("id", doctorId);
+    const { error } = await updateDoctor(doctorId, {
+      full_name: profile.full_name,
+      email: profile.email,
+      phone: profile.phone,
+      specialization_id: profile.specialization_id,
+    });
 
     setSaving(false);
 
@@ -112,6 +124,38 @@ function DoctorProfile() {
 
     alert("Doctor profile updated successfully");
     fetchData();
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+
+    if (passwordData.new_password.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    setChangingPassword(true);
+
+    const { error } = await changeDoctorPassword(passwordData.new_password);
+
+    setChangingPassword(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Password changed successfully");
+
+    setPasswordData({
+      new_password: "",
+      confirm_password: "",
+    });
   };
 
   return (
@@ -223,6 +267,54 @@ function DoctorProfile() {
             </div>
           </form>
         )}
+      </div>
+
+      <div className="mt-6 rounded-2xl bg-white p-5 shadow-lg md:p-6">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white">
+            <Shield size={22} />
+          </div>
+
+          <div>
+            <h2 className="text-xl font-bold text-primary">Security</h2>
+            <p className="text-sm text-gray-500">
+              Change your account password.
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handlePasswordChange} className="grid gap-5">
+          <div className="grid gap-5 md:grid-cols-2">
+            <Input
+              label="New Password"
+              name="new_password"
+              type="password"
+              value={passwordData.new_password}
+              onChange={handlePasswordInputChange}
+              required
+            />
+
+            <Input
+              label="Confirm Password"
+              name="confirm_password"
+              type="password"
+              value={passwordData.confirm_password}
+              onChange={handlePasswordInputChange}
+              required
+            />
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={changingPassword}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-accent px-5 py-3 font-semibold text-white shadow-md hover:opacity-90 disabled:opacity-60"
+            >
+              <Shield size={18} />
+              {changingPassword ? "Changing..." : "Change Password"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
