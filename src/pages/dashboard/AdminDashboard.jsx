@@ -1,84 +1,164 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
-import AdminSidebar from '../../components/Sidebar';
-import { useAuth } from '../../context/AuthContext';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  CalendarCheck,
+  Clock,
+  Stethoscope,
+  UserRound,
+  Users,
+} from "lucide-react";
 
-export default function AdminDashboard() {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
+import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
 
-  const totalDoctors = 12;
-  const totalPatients = 145;
-  const totalAppointments = 48;
+function AdminDashboard() {
+  const { profile, role } = useAuth();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
+  const [stats, setStats] = useState({
+    doctors: 0,
+    patients: 0,
+    appointments: 0,
+    schedules: 0,
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    setLoading(true);
+
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
     }
+
+    const [
+      { count: doctors },
+      { count: patients },
+      { count: appointments },
+      { count: schedules },
+    ] = await Promise.all([
+      supabase.from("doctors").select("*", { count: "exact", head: true }),
+      supabase.from("patients").select("*", { count: "exact", head: true }),
+      supabase.from("appointments").select("*", { count: "exact", head: true }),
+      supabase.from("schedules").select("*", { count: "exact", head: true }),
+    ]);
+
+    setStats({
+      doctors: doctors || 0,
+      patients: patients || 0,
+      appointments: appointments || 0,
+      schedules: schedules || 0,
+    });
+
+    setLoading(false);
   };
 
   return (
-    <div className="flex bg-slate-50 min-h-screen font-sans">
+    <div className="mx-auto w-full max-w-5xl">
+      <div className="mb-5 rounded-2xl bg-gradient-to-r from-primary via-secondary to-accent p-5 text-white shadow-lg md:p-6">
+        <p className="mb-1 text-sm font-medium text-white/80">
+          Admin Dashboard
+        </p>
 
-      <AdminSidebar />
-      
-      <div className="flex-1 ml-64 flex flex-col">
-        {/* <Navbar onLogout={handleLogout} /> */}
-        
-        <div className="p-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-slate-800">Hello, Aswini!</h2>
-            <p className="text-sm text-slate-500">Here is the quick hospital summary for today.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            
-            {/* Card 1: Total Doctors */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">Total Doctors</p>
-                <h1 className="text-3xl font-bold text-slate-800 mt-2">{totalDoctors}</h1>
-              </div>
-              <div className="text-3xl bg-blue-50 p-3 rounded-lg">👨‍⚕️</div>
-            </div>
+        <h1 className="text-2xl font-bold md:text-3xl">
+          Welcome, {profile?.full_name || "Admin"}
+        </h1>
 
-            {/* Card 2: Total Patients */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">Total Patients</p>
-                <h1 className="text-3xl font-bold text-slate-800 mt-2">{totalPatients}</h1>
-              </div>
-              <div className="text-3xl bg-green-50 p-3 rounded-lg">👥</div>
-            </div>
+        <p className="mt-1 max-w-lg text-sm text-white/80">
+          Role: {role || "admin"} • Manage doctors, patients, schedules, and
+          appointments.
+        </p>
+      </div>
 
-            {/* Card 3: Total Appointments */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-500 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">Total Appointments</p>
-                <h1 className="text-3xl font-bold text-slate-800 mt-2">{totalAppointments}</h1>
-              </div>
-              <div className="text-3xl bg-amber-50 p-3 rounded-lg">📅</div>
-            </div>
+      <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={<Stethoscope />} title="Doctors" value={stats.doctors} />
+        <StatCard icon={<Users />} title="Patients" value={stats.patients} />
+        <StatCard
+          icon={<CalendarCheck />}
+          title="Appointments"
+          value={stats.appointments}
+        />
+        <StatCard icon={<Clock />} title="Schedules" value={stats.schedules} />
+      </div>
 
-          </div>
+      <div className="rounded-2xl bg-white p-5 shadow-lg md:p-6">
+        <h2 className="mb-4 text-xl font-bold text-primary">
+          Quick Admin Actions
+        </h2>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-slate-800">📅 Upcoming Appointments Summary</h3>
-              <span className="px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-600 rounded-full">Today</span>
-            </div>
-            
-            <div className="text-center py-8 text-slate-400 text-sm">
-              No appointments scheduled for the next hour.
-            </div>
-          </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <ActionCard
+            icon={<Stethoscope />}
+            title="Manage Doctors"
+            description="Add, edit, view, and remove doctor records."
+            link="/doctors"
+          />
 
+          <ActionCard
+            icon={<UserRound />}
+            title="Manage Patients"
+            description="Maintain patient records and contact information."
+            link="/patients"
+          />
+
+          <ActionCard
+            icon={<Clock />}
+            title="Manage Schedules"
+            description="Create and update doctor available time slots."
+            link="/schedules"
+          />
+
+          <ActionCard
+            icon={<CalendarCheck />}
+            title="Manage Appointments"
+            description="Create, update, and track patient appointments."
+            link="/appointments"
+          />
         </div>
       </div>
+
+      {loading && (
+        <p className="mt-4 text-center text-sm text-gray-500">
+          Loading dashboard data...
+        </p>
+      )}
     </div>
   );
 }
+
+function StatCard({ icon, title, value }) {
+  return (
+    <div className="rounded-2xl bg-white p-4 shadow-md">
+      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-white">
+        {icon}
+      </div>
+
+      <p className="text-sm text-gray-500">{title}</p>
+
+      <h2 className="mt-1 text-3xl font-bold text-primary">{value}</h2>
+    </div>
+  );
+}
+
+function ActionCard({ icon, title, description, link }) {
+  return (
+    <Link
+      to={link}
+      className="rounded-2xl border border-gray-100 bg-gray-50 p-5 transition hover:-translate-y-1 hover:bg-white hover:shadow-lg"
+    >
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-white">
+        {icon}
+      </div>
+
+      <h3 className="text-lg font-bold text-primary">{title}</h3>
+
+      <p className="mt-2 text-sm text-gray-500">{description}</p>
+    </Link>
+  );
+}
+
+export default AdminDashboard;

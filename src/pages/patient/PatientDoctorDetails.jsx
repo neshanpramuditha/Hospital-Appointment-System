@@ -50,10 +50,13 @@ function PatientDoctorDetails() {
       return;
     }
 
+    const today = new Date().toISOString().split("T")[0];
+
     const { data: scheduleData, error: scheduleError } = await supabase
       .from("schedules")
       .select("*")
       .eq("doctor_id", id)
+      .gte("available_date", today)
       .order("available_date", { ascending: true });
 
     if (scheduleError) {

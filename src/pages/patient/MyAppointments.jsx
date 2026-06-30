@@ -9,18 +9,45 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { useAuth } from "../../context/AuthContext";
 
 function MyAppointments() {
+  const { user } = useAuth();
+
   const [appointments, setAppointments] = useState([]);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
+  const [timeFilter, setTimeFilter] = useState("upcoming");
+  const [sortBy, setSortBy] = useState("upcoming");
   const [loading, setLoading] = useState(true);
+
+  const today = new Date().toISOString().split("T")[0];
 
   const fetchAppointments = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !user?.id) {
+      setAppointments([]);
+      setLoading(false);
+      return;
+    }
+
+    const { data: patient, error: patientError } = await supabase
+      .from("patients")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (patientError) {
+      alert(patientError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!patient) {
       setAppointments([]);
       setLoading(false);
       return;
@@ -36,12 +63,6 @@ function MyAppointments() {
         appointment_time,
         status,
         created_at,
-        patients (
-          id,
-          full_name,
-          email,
-          phone
-        ),
         doctors (
           id,
           full_name,
@@ -53,20 +74,49 @@ function MyAppointments() {
           )
         )
       `)
+      .eq("patient_id", patient.id)
       .order("appointment_date", { ascending: true });
 
-    if (error) {
-      alert(error.message);
-    } else {
-      setAppointments(data || []);
-    }
+    if (error) alert(error.message);
+    else setAppointments(data || []);
 
     setLoading(false);
   };
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [user?.id]);
+
+  const isExpired = (appointment) => {
+    return (
+      appointment.appointment_date < today &&
+      appointment.status !== "completed" &&
+      appointment.status !== "cancelled"
+    );
+  };
+
+  const displayStatus = (appointment) => {
+    if (isExpired(appointment)) return "expired";
+    return appointment.status || "pending";
+  };
+
+  const cancelAppointment = async (id) => {
+    if (!window.confirm("Are you sure you want to cancel this appointment?")) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("appointments")
+      .update({ status: "cancelled" })
+      .eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    fetchAppointments();
+  };
 
   const filteredAppointments = useMemo(() => {
     let result = [...appointments];
@@ -74,50 +124,79 @@ function MyAppointments() {
 
     if (keyword) {
       result = result.filter((appointment) => {
-        const patientName = appointment.patients?.full_name || "";
         const doctorName = appointment.doctors?.full_name || "";
         const specialization =
           appointment.doctors?.specializations?.name || "";
+        const status = displayStatus(appointment);
 
         return (
-          patientName.toLowerCase().includes(keyword) ||
           doctorName.toLowerCase().includes(keyword) ||
           specialization.toLowerCase().includes(keyword) ||
-          appointment.status?.toLowerCase().includes(keyword) ||
+          status.toLowerCase().includes(keyword) ||
+          appointment.appointment_date?.includes(search.trim()) ||
+          appointment.appointment_time?.includes(search.trim()) ||
           appointment.id?.toLowerCase().includes(keyword)
         );
       });
     }
 
-    if (statusFilter !== "all") {
+    if (statusFilter === "active") {
+      result = result.filter((appointment) =>
+        ["pending", "confirmed"].includes(displayStatus(appointment))
+      );
+    } else if (statusFilter !== "all") {
       result = result.filter(
-        (appointment) => appointment.status === statusFilter
+        (appointment) => displayStatus(appointment) === statusFilter
       );
     }
 
+    if (timeFilter === "upcoming") {
+      result = result.filter((appointment) => appointment.appointment_date >= today);
+    }
+
+    if (timeFilter === "expired") {
+      result = result.filter((appointment) => isExpired(appointment));
+    }
+
+    if (timeFilter === "past") {
+      result = result.filter((appointment) => appointment.appointment_date < today);
+    }
+
+    result.sort((a, b) => {
+      const dateA = `${a.appointment_date} ${a.appointment_time}`;
+      const dateB = `${b.appointment_date} ${b.appointment_time}`;
+
+      if (sortBy === "latest") return dateB.localeCompare(dateA);
+      if (sortBy === "expired_first") return Number(isExpired(b)) - Number(isExpired(a));
+      if (sortBy === "status") return displayStatus(a).localeCompare(displayStatus(b));
+
+      return dateA.localeCompare(dateB);
+    });
+
     return result;
-  }, [appointments, search, statusFilter]);
+  }, [appointments, search, statusFilter, timeFilter, sortBy]);
 
   const clearFilters = () => {
     setSearch("");
-    setStatusFilter("all");
+    setStatusFilter("active");
+    setTimeFilter("upcoming");
+    setSortBy("upcoming");
   };
 
   const getStatusClass = (status) => {
-    if (status === "confirmed") {
-      return "bg-accent/10 text-secondary";
-    }
-
-    if (status === "cancelled") {
-      return "bg-red-50 text-red-600";
-    }
-
-    if (status === "completed") {
-      return "bg-blue-50 text-blue-600";
-    }
-
+    if (status === "confirmed") return "bg-accent/10 text-secondary";
+    if (status === "cancelled") return "bg-red-50 text-red-600";
+    if (status === "completed") return "bg-blue-50 text-blue-600";
+    if (status === "expired") return "bg-gray-200 text-gray-700";
     return "bg-amber-50 text-amber-700";
   };
+
+  const countByStatus = (status) =>
+    appointments.filter((item) => displayStatus(item) === status).length;
+
+  const upcomingCount = appointments.filter(
+    (item) => item.appointment_date >= today
+  ).length;
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -131,7 +210,7 @@ function MyAppointments() {
               My Appointments
             </h1>
             <p className="mt-1 max-w-lg text-sm text-white/80">
-              View and manage booked appointments.
+              View upcoming, completed, cancelled, and expired appointments.
             </p>
           </div>
 
@@ -144,37 +223,16 @@ function MyAppointments() {
         </div>
       </div>
 
-      {!isSupabaseConfigured && (
-        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-          Supabase is not configured yet. Set environment variables to load appointments.
-        </div>
-      )}
-
-      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl bg-white p-4 shadow-md">
-          <p className="text-sm text-gray-500">Total Appointments</p>
-          <h2 className="mt-1 text-3xl font-bold text-primary">
-            {appointments.length}
-          </h2>
-        </div>
-
-        <div className="rounded-2xl bg-white p-4 shadow-md">
-          <p className="text-sm text-gray-500">Current Results</p>
-          <h2 className="mt-1 text-3xl font-bold text-accent">
-            {filteredAppointments.length}
-          </h2>
-        </div>
-
-        <div className="rounded-2xl bg-white p-4 shadow-md">
-          <p className="text-sm text-gray-500">Pending</p>
-          <h2 className="mt-1 text-3xl font-bold text-amber-600">
-            {appointments.filter((a) => a.status === "pending").length}
-          </h2>
-        </div>
+      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <StatCard title="Total" value={appointments.length} color="text-primary" />
+        <StatCard title="Upcoming" value={upcomingCount} color="text-secondary" />
+        <StatCard title="Pending" value={countByStatus("pending")} color="text-amber-600" />
+        <StatCard title="Confirmed" value={countByStatus("confirmed")} color="text-accent" />
+        <StatCard title="Expired" value={countByStatus("expired")} color="text-gray-600" />
       </div>
 
       <div className="mb-5 rounded-2xl bg-white p-4 shadow-lg md:p-5">
-        <div className="grid gap-3 md:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-5">
           <div className="relative md:col-span-2">
             <Search
               size={18}
@@ -183,7 +241,7 @@ function MyAppointments() {
 
             <input
               type="text"
-              placeholder="Search doctor, patient, specialization, status..."
+              placeholder="Search doctor, specialization, date, status..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-xl border border-gray-200 bg-gray-50 px-11 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
@@ -195,20 +253,44 @@ function MyAppointments() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
           >
+            <option value="active">Pending + Confirmed</option>
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
             <option value="confirmed">Confirmed</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
+            <option value="expired">Expired</option>
+          </select>
+
+          <select
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value)}
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+          >
+            <option value="all">All Dates</option>
+            <option value="upcoming">Upcoming Only</option>
+            <option value="past">Past Only</option>
+            <option value="expired">Expired Only</option>
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+          >
+            <option value="upcoming">Upcoming First</option>
+            <option value="latest">Latest First</option>
+            <option value="expired_first">Expired First</option>
+            <option value="status">Status A-Z</option>
           </select>
 
           <button
             type="button"
             onClick={clearFilters}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 md:col-span-5"
           >
             <X size={17} />
-            Clear
+            Clear Filters
           </button>
         </div>
       </div>
@@ -223,68 +305,95 @@ function MyAppointments() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {filteredAppointments.map((appointment) => (
-            <div
-              key={appointment.id}
-              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-md transition hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white shadow-md">
-                    <UserRound size={26} />
-                  </div>
+          {filteredAppointments.map((appointment) => {
+            const status = displayStatus(appointment);
+            const canCancel =
+              !isExpired(appointment) &&
+              (appointment.status === "pending" ||
+                appointment.status === "confirmed");
 
-                  <div>
-                    <h3 className="text-lg font-bold text-primary">
-                      Dr. {appointment.doctors?.full_name || "N/A"}
-                    </h3>
-
-                    <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-secondary">
-                      <Stethoscope size={14} />
-                      {appointment.doctors?.specializations?.name ||
-                        "General Doctor"}
+            return (
+              <div
+                key={appointment.id}
+                className="rounded-2xl border border-gray-100 bg-white p-5 shadow-md transition hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white shadow-md">
+                      <UserRound size={26} />
                     </div>
 
-                    <p className="mt-2 text-sm text-gray-500">
-                      Patient: {appointment.patients?.full_name || "N/A"}
-                    </p>
+                    <div>
+                      <h3 className="text-lg font-bold text-primary">
+                        Dr. {appointment.doctors?.full_name || "N/A"}
+                      </h3>
+
+                      <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-secondary">
+                        <Stethoscope size={14} />
+                        {appointment.doctors?.specializations?.name ||
+                          "General Doctor"}
+                      </div>
+
+                      <p className="mt-2 text-sm text-gray-500">
+                        Appointment ID: {appointment.id.slice(0, 8)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span
+                    className={`w-fit rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(
+                      status
+                    )}`}
+                  >
+                    {status}
+                  </span>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="flex items-center gap-2 rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
+                    <Calendar size={17} className="text-primary" />
+                    {appointment.appointment_date || "N/A"}
+                  </div>
+
+                  <div className="flex items-center gap-2 rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
+                    <Clock size={17} className="text-primary" />
+                    {appointment.appointment_time || "N/A"}
                   </div>
                 </div>
 
-                <span
-                  className={`w-fit rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusClass(
-                    appointment.status
-                  )}`}
-                >
-                  {appointment.status || "pending"}
-                </span>
-              </div>
+                <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  {canCancel && (
+                    <button
+                      type="button"
+                      onClick={() => cancelAppointment(appointment.id)}
+                      className="rounded-xl bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-500 hover:text-white"
+                    >
+                      Cancel Appointment
+                    </button>
+                  )}
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="flex items-center gap-2 rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
-                  <Calendar size={17} className="text-primary" />
-                  {appointment.appointment_date || "N/A"}
+                  <Link
+                    to={`/patient/appointments/${appointment.id}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-white"
+                  >
+                    <Eye size={17} />
+                    View Details
+                  </Link>
                 </div>
-
-                <div className="flex items-center gap-2 rounded-xl bg-gray-50 p-3 text-sm text-gray-700">
-                  <Clock size={17} className="text-primary" />
-                  {appointment.appointment_time || "N/A"}
-                </div>
               </div>
-
-              <div className="mt-5 flex justify-end">
-                <Link
-                  to={`/patient/appointments/${appointment.id}`}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-white"
-                >
-                  <Eye size={17} />
-                  View Details
-                </Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+    </div>
+  );
+}
+
+function StatCard({ title, value, color }) {
+  return (
+    <div className="rounded-2xl bg-white p-4 shadow-md">
+      <p className="text-sm text-gray-500">{title}</p>
+      <h2 className={`mt-1 text-3xl font-bold ${color}`}>{value}</h2>
     </div>
   );
 }

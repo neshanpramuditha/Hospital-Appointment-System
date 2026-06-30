@@ -14,12 +14,6 @@ import { GoogleIcon } from "../../assets/auth/icons";
 
 import { useAuth } from "../../context/AuthContext";
 import { DASHBOARD_ROUTES } from "../../utils/roles";
-import {
-  generateOtp,
-  saveOtp,
-  sendOtpEmail,
-  verifyOtp,
-} from "../../services/otpService";
 
 export default function Login({ onSwitch }) {
   const navigate = useNavigate();
@@ -69,49 +63,11 @@ export default function Login({ onSwitch }) {
     }
 
     if (mode === "forgot-password") {
-      if (!otpStep) {
-        try {
-          setSubmitting(true);
-
-          const otp = generateOtp();
-          saveOtp(email, otp);
-
-          const result = await sendOtpEmail(email, otp);
-
-          setOtpStep(true);
-          setOtpCode("");
-
-          if (result?.sent) {
-            toast.success("OTP sent to your email. Enter the code to continue.");
-          } else {
-            toast.success("OTP generated locally. Enter the code to continue.");
-          }
-        } catch (err) {
-          toast.error(err.message || "Could not send OTP.");
-        } finally {
-          setSubmitting(false);
-        }
-
-        return;
-      }
-
-      if (!otpCode.trim()) {
-        toast.error("Please enter the OTP sent to your email.");
-        return;
-      }
-
-      const verification = verifyOtp(email, otpCode);
-
-      if (!verification.valid) {
-        toast.error(verification.reason || "OTP verification failed.");
-        return;
-      }
-
       try {
         setSubmitting(true);
 
         await resetPassword(email);
-        toast.success("Password reset instructions have been sent to your email.");
+        toast.success("Password reset instructions have been sent to your email. Please check your inbox and spam folder.");
         setOtpStep(false);
         setOtpCode("");
         setMode("login");
@@ -235,32 +191,30 @@ export default function Login({ onSwitch }) {
           disabled={submitting}
         >
           {submitting
-            ? otpStep
-              ? "Wait..."
-              : "Verifying..."
+            ? "Please wait..."
             : mode === "forgot-password"
-              ? otpStep
-                ? "Verify OTP & Reset"
-                : "Send Reset OTP"
+              ? "Send Reset Link"
               : "Sign In"}
         </PrimaryButton>
       </form>
 
       <Divider />
 
-      <GoogleLogin
-        onSuccess={handleGoogleSuccess}
-        onError={handleGoogleError}
-        useOneTap={false}
-        text="continue_with"
-        locale="en"
-        render={(renderProps) => (
-          <SocialButton onClick={renderProps.onClick} disabled={renderProps.disabled}>
-            <GoogleIcon />
-            Login With Google
-          </SocialButton>
-        )}
-      />
+      <div className="flex justify-center">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          useOneTap={false}
+          text="signin"
+          locale="en"
+          render={(renderProps) => (
+            <SocialButton onClick={renderProps.onClick} disabled={renderProps.disabled}>
+              <GoogleIcon />
+              Login With Google
+            </SocialButton>
+          )}
+        />
+      </div>
 
       <p
         className="text-center text-sm text-slate-500 mt-6"

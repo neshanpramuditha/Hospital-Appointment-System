@@ -23,9 +23,8 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // -----------------------------
+
   // Load current session
-  // -----------------------------
   useEffect(() => {
     getSession();
 
@@ -64,9 +63,8 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // -----------------------------
+
   // Get Current Session
-  // -----------------------------
   async function getSession() {
     try {
       const auth = supabase?.auth;
@@ -100,37 +98,27 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // -----------------------------
   // Register
-  // -----------------------------
   async function register(data) {
     return await registerPatient(data);
   }
 
-  // -----------------------------
   // Login
-  // -----------------------------
   async function login(email, password) {
     return await loginService(email, password);
   }
 
-  // -----------------------------
   // Google Login
-  // -----------------------------
   async function googleLogin(credential) {
     return await loginWithGoogleService(credential);
   }
 
-  // -----------------------------
   // Reset Password
-  // -----------------------------
   async function resetPassword(email) {
     return await requestPasswordResetService(email);
   }
 
-  // -----------------------------
   // Logout
-  // -----------------------------
   async function logout() {
     await logoutService();
 
@@ -163,4 +151,36 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   return useContext(AuthContext);
+}
+
+// Patient Profiles
+export async function getPatientProfile(userId) {
+  const { data, error } = await supabase
+    .from("patients")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
+}
+
+// Doctor Profiles
+export async function getDoctorProfile(userId) {
+  const { data, error } = await supabase
+    .from("doctors")
+    .select(`
+      *,
+      specialization:specialization_id (
+        id,
+        name
+      )
+    `)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
 }
