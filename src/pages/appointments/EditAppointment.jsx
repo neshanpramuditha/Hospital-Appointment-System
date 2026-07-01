@@ -1,7 +1,18 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import {
+  getAppointmentById,
+  getAppointmentDoctors,
+  getAppointmentPatients,
+  updateAppointment,
+} from "../../services/appointmentService";
+
+const today = new Date().toISOString().slice(0, 10);
+const isExpiredAppointment = (appointment) =>
+  appointment.appointment_date < today &&
+  appointment.status !== "completed" &&
+  appointment.status !== "cancelled";
 
 function EditAppointment() {
   const { id } = useParams();
@@ -20,41 +31,14 @@ function EditAppointment() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [originalAppointment, setOriginalAppointment] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, [id]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-
-    const { data: patientData } = await supabase
-      .from("patients")
-      .select("id, full_name, phone")
-      .order("full_name", { ascending: true });
-
-    const { data: doctorData } = await supabase
-      .from("doctors")
-      .select(`
-        id,
-        full_name,
-        specializations (
-          id,
-          name
-        )
-      `)
-      .order("full_name", { ascending: true });
-
-    const { data: appointmentData, error } = await supabase
-      .from("appointments")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data: patientData } = await getAppointmentPatients();
+    const { data: doctorData } = await getAppointmentDoctors();
+    const { data: appointmentData, error } = await getAppointmentById(id);
 
     if (error) {
       alert(error.message);
@@ -64,6 +48,7 @@ function EditAppointment() {
 
     setPatients(patientData || []);
     setDoctors(doctorData || []);
+    setOriginalAppointment(appointmentData);
 
     setAppointment({
       patient_id: appointmentData.patient_id || "",
@@ -74,7 +59,11 @@ function EditAppointment() {
     });
 
     setLoading(false);
-  };
+  }, [id]);
+
+  useEffect(() => {
+    Promise.resolve().then(fetchData);
+  }, [fetchData]);
 
   const handleChange = (e) => {
     setAppointment({
@@ -85,18 +74,40 @@ function EditAppointment() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!appointment.patient_id || !appointment.doctor_id) {
+      alert("Please select both a patient and a doctor.");
+      return;
+    }
+
+    if (appointment.appointment_date < today) {
+      alert("Cannot save an appointment for a past date.");
+      return;
+    }
+
+    if (!appointment.appointment_time) {
+      alert("Please select an appointment time.");
+      return;
+    }
+
+    if (
+      originalAppointment &&
+      isExpiredAppointment(originalAppointment) &&
+      appointment.status !== originalAppointment.status
+    ) {
+      alert("Status update is not allowed for expired appointments.");
+      return;
+    }
+
     setSaving(true);
 
-    const { error } = await supabase
-      .from("appointments")
-      .update({
-        patient_id: appointment.patient_id,
-        doctor_id: appointment.doctor_id,
-        appointment_date: appointment.appointment_date,
-        appointment_time: appointment.appointment_time,
-        status: appointment.status,
-      })
-      .eq("id", id);
+    const { error } = await updateAppointment(id, {
+      patient_id: appointment.patient_id,
+      doctor_id: appointment.doctor_id,
+      appointment_date: appointment.appointment_date,
+      appointment_time: appointment.appointment_time,
+      status: appointment.status,
+    });
 
     setSaving(false);
 
@@ -193,6 +204,7 @@ function EditAppointment() {
                 type="date"
                 value={appointment.appointment_date}
                 onChange={handleChange}
+                min={today}
                 required
               />
 
@@ -210,6 +222,7 @@ function EditAppointment() {
                 name="status"
                 value={appointment.status}
                 onChange={handleChange}
+                disabled={originalAppointment && isExpiredAppointment(originalAppointment)}
               >
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
@@ -243,7 +256,7 @@ function EditAppointment() {
   );
 }
 
-function Input({ label, name, value, onChange, type = "text", required }) {
+function Input({ label, name, value, onChange, type = "text", min, required }) {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -254,6 +267,7 @@ function Input({ label, name, value, onChange, type = "text", required }) {
         name={name}
         value={value}
         onChange={onChange}
+        min={min}
         required={required}
         className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
       />
@@ -261,7 +275,7 @@ function Input({ label, name, value, onChange, type = "text", required }) {
   );
 }
 
-function SelectField({ label, name, value, onChange, children }) {
+function SelectField({ label, name, value, onChange, children, disabled = false }) {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -271,8 +285,9 @@ function SelectField({ label, name, value, onChange, children }) {
         name={name}
         value={value}
         onChange={onChange}
+        disabled={disabled}
         required
-        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
+        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {children}
       </select>

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { addSchedule, getScheduleDoctors } from "../../services/scheduleService";
+
+const today = new Date().toISOString().slice(0, 10);
 
 function AddSchedule() {
   const navigate = useNavigate();
@@ -20,15 +22,7 @@ function AddSchedule() {
   const fetchDoctors = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("doctors")
-      .select("id, full_name")
-      .order("full_name", { ascending: true });
+    const { data, error } = await getScheduleDoctors();
 
     if (error) alert(error.message);
     else setDoctors(data || []);
@@ -37,7 +31,7 @@ function AddSchedule() {
   };
 
   useEffect(() => {
-    fetchDoctors();
+    Promise.resolve().then(fetchDoctors);
   }, []);
 
   const handleChange = (e) => {
@@ -50,16 +44,24 @@ function AddSchedule() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (schedule.available_date < today) {
+      alert("Cannot add a schedule for a past date.");
+      return;
+    }
+
+    if (schedule.start_time >= schedule.end_time) {
+      alert("Start time must be earlier than end time.");
+      return;
+    }
+
     setSaving(true);
 
-    const { error } = await supabase.from("schedules").insert([
-      {
-        doctor_id: schedule.doctor_id,
-        available_date: schedule.available_date,
-        start_time: schedule.start_time,
-        end_time: schedule.end_time,
-      },
-    ]);
+    const { error } = await addSchedule({
+      doctor_id: schedule.doctor_id,
+      available_date: schedule.available_date,
+      start_time: schedule.start_time,
+      end_time: schedule.end_time,
+    });
 
     setSaving(false);
 
@@ -144,6 +146,7 @@ function AddSchedule() {
                 type="date"
                 value={schedule.available_date}
                 onChange={handleChange}
+                min={today}
                 required
               />
 
@@ -191,7 +194,7 @@ function AddSchedule() {
   );
 }
 
-function Input({ label, name, value, onChange, type = "text", required }) {
+function Input({ label, name, value, onChange, type = "text", min, required }) {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -203,6 +206,7 @@ function Input({ label, name, value, onChange, type = "text", required }) {
         name={name}
         value={value}
         onChange={onChange}
+        min={min}
         required={required}
         className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
       />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -10,7 +10,16 @@ import {
   UserRound,
   Pencil,
 } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { getAppointmentById } from "../../services/appointmentService";
+
+const today = new Date().toISOString().slice(0, 10);
+const isExpiredAppointment = (appointment) =>
+  appointment.appointment_date < today &&
+  appointment.status !== "completed" &&
+  appointment.status !== "cancelled";
+
+const displayStatus = (appointment) =>
+  isExpiredAppointment(appointment) ? "expired" : appointment.status || "pending";
 
 function AppointmentDetails() {
   const { id } = useParams();
@@ -18,41 +27,10 @@ function AppointmentDetails() {
   const [appointment, setAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAppointment();
-  }, [id]);
-
-  const fetchAppointment = async () => {
+  const fetchAppointment = useCallback(async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("appointments")
-      .select(`
-        *,
-        patients (
-          id,
-          full_name,
-          email,
-          phone
-        ),
-        doctors (
-          id,
-          full_name,
-          email,
-          phone,
-          specializations (
-            id,
-            name
-          )
-        )
-      `)
-      .eq("id", id)
-      .single();
+    const { data, error } = await getAppointmentById(id);
 
     if (error) {
       alert(error.message);
@@ -61,9 +39,16 @@ function AppointmentDetails() {
     }
 
     setLoading(false);
-  };
+  }, [id]);
+
+  useEffect(() => {
+    Promise.resolve().then(fetchAppointment);
+  }, [fetchAppointment]);
 
   const getStatusClass = (status) => {
+    if (status === "expired")
+      return "bg-red-100 text-red-700";
+
     if (status === "confirmed")
       return "bg-green-100 text-green-700";
 
@@ -248,10 +233,10 @@ function AppointmentDetails() {
 
             <span
               className={`rounded-full px-4 py-2 text-sm font-semibold capitalize ${getStatusClass(
-                appointment.status
+              displayStatus(appointment)
               )}`}
             >
-              {appointment.status}
+              {displayStatus(appointment)}
             </span>
           </div>
 

@@ -1,7 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import { ArrowLeft, Save } from "lucide-react";
+import {
+  getScheduleById,
+  getScheduleDoctors,
+  updateSchedule,
+} from "../../services/scheduleService";
+
+const today = new Date().toISOString().slice(0, 10);
 
 function EditSchedule() {
   const { id } = useParams();
@@ -18,22 +24,10 @@ function EditSchedule() {
     end_time: "",
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [id]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-
-    const { data: doctorData, error: doctorError } = await supabase
-      .from("doctors")
-      .select("id, full_name")
-      .order("full_name", { ascending: true });
+    const { data: doctorData, error: doctorError } = await getScheduleDoctors();
 
     if (doctorError) {
       alert(doctorError.message);
@@ -41,11 +35,7 @@ function EditSchedule() {
       return;
     }
 
-    const { data: scheduleData, error: scheduleError } = await supabase
-      .from("schedules")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data: scheduleData, error: scheduleError } = await getScheduleById(id);
 
     if (scheduleError) {
       alert(scheduleError.message);
@@ -63,7 +53,11 @@ function EditSchedule() {
     });
 
     setLoading(false);
-  };
+  }, [id]);
+
+  useEffect(() => {
+    Promise.resolve().then(fetchData);
+  }, [fetchData]);
 
   const handleChange = (e) => {
     setSchedule({
@@ -75,17 +69,24 @@ function EditSchedule() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (schedule.available_date < today) {
+      alert("Cannot save a schedule for a past date.");
+      return;
+    }
+
+    if (schedule.start_time >= schedule.end_time) {
+      alert("Start time must be earlier than end time.");
+      return;
+    }
+
     setSaving(true);
 
-    const { error } = await supabase
-      .from("schedules")
-      .update({
-        doctor_id: schedule.doctor_id,
-        available_date: schedule.available_date,
-        start_time: schedule.start_time,
-        end_time: schedule.end_time,
-      })
-      .eq("id", id);
+    const { error } = await updateSchedule(id, {
+      doctor_id: schedule.doctor_id,
+      available_date: schedule.available_date,
+      start_time: schedule.start_time,
+      end_time: schedule.end_time,
+    });
 
     setSaving(false);
 
@@ -162,6 +163,7 @@ function EditSchedule() {
                 name="available_date"
                 value={schedule.available_date}
                 onChange={handleChange}
+                min={today}
               />
 
               <Input
@@ -206,7 +208,7 @@ function EditSchedule() {
   );
 }
 
-function Input({ label, type, name, value, onChange }) {
+function Input({ label, type, name, value, onChange, min }) {
   return (
     <div>
       <label className="mb-2 block font-semibold text-gray-700">
@@ -218,6 +220,7 @@ function Input({ label, type, name, value, onChange }) {
         name={name}
         value={value}
         onChange={onChange}
+        min={min}
         required
         className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3"
       />
