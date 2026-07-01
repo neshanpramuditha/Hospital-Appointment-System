@@ -122,10 +122,10 @@ const pillars = [
 ];
 
 const milestones = [
-  { year: "2021", label: "Founded", detail: "CLINEXA launched with a mission to modernize how patients connect with hospitals." },
-  { year: "2022", label: "10k Patients", detail: "Reached 10,000 active patients across three regions within the first year." },
-  { year: "2023", label: "100+ Clinics", detail: "Onboarded over 100 partner clinics and specialist networks nationwide." },
-  { year: "2024", label: "Global Reach", detail: "Expanded internationally with multi-language support and regional data centers." },
+  { year: "2022", label: "Founded", detail: "CLINEXA launched with a mission to modernize how patients connect with hospitals." },
+  { year: "2024", label: "10k Patients", detail: "Reached 10,000 active patients across three regions within the first year." },
+  { year: "2025", label: "100+ Clinics", detail: "Onboarded over 100 partner clinics and specialist networks nationwide." },
+  { year: "2026", label: "Global Reach", detail: "Expanded internationally with multi-language support and regional data centers." },
 ];
 
 // Main Component
@@ -277,8 +277,7 @@ export default function AboutPage() {
           {/* Eyebrow pill */}
           <div className="anim-fade-in inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-8 border"
             style={{ color: "#028090", borderColor: "#02C39A44", background: "rgba(2,195,154,0.08)" }}>
-            <img src="/logo.png" alt="" className="w-4 h-4 object-contain opacity-70" />
-            About CLINEXA™
+            <img src="/logo.png" alt="" className="w-4 h-4 object-contain opacity-70" />About CLINEXA™
           </div>
 
           {/* Typewriter headline */}

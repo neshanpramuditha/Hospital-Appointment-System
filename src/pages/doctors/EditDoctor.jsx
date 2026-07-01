@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, UserRound } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { getDoctorById, updateDoctor } from "../../services/doctorService";
+import toast from "react-hot-toast";
 
 function EditDoctor() {
   const { id } = useParams();
@@ -82,7 +83,7 @@ function EditDoctor() {
       return;
     }
 
-    alert("Doctor updated successfully");
+    toast.success("Doctor updated successfully");
     navigate("/doctors");
   };
 

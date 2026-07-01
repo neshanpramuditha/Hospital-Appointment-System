@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
 import { addSchedule, getScheduleDoctors } from "../../services/scheduleService";
+import toast from "react-hot-toast";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -45,12 +46,12 @@ function AddSchedule() {
     e.preventDefault();
 
     if (schedule.available_date < today) {
-      alert("Cannot add a schedule for a past date.");
+      toast.error("Cannot add a schedule for a past date.");
       return;
     }
 
     if (schedule.start_time >= schedule.end_time) {
-      alert("Start time must be earlier than end time.");
+      toast.error("Start time must be earlier than end time.");
       return;
     }
 
@@ -70,7 +71,7 @@ function AddSchedule() {
       return;
     }
 
-    alert("Schedule added successfully");
+    toast.success("Schedule added successfully");
     navigate("/schedules");
   };
 

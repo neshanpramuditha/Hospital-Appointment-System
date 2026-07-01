@@ -4,6 +4,7 @@ import { ArrowLeft, Save, UserRound } from "lucide-react";
 
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { createDoctorAccount } from "../../services/doctorService";
+import toast from "react-hot-toast";
 
 function AddDoctor() {
   const navigate = useNavigate();
@@ -56,12 +57,12 @@ function AddDoctor() {
     e.preventDefault();
 
     if (doctor.password.length < 6) {
-      alert("Password must be at least 6 characters.");
+      toast.error("Password must be at least 6 characters.");
       return;
     }
 
     if (doctor.password !== doctor.confirm_password) {
-      alert("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
@@ -76,10 +77,10 @@ function AddDoctor() {
         password: doctor.password,
       });
 
-      alert("Doctor account created successfully");
+      toast.success("Doctor account created successfully");
       navigate("/doctors");
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
     } finally {
       setSaving(false);
     }

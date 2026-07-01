@@ -7,6 +7,7 @@ import {
   getAppointmentPatients,
   updateAppointment,
 } from "../../services/appointmentService";
+import toast from "react-hot-toast";
 
 const today = new Date().toISOString().slice(0, 10);
 const isExpiredAppointment = (appointment) =>
@@ -76,17 +77,17 @@ function EditAppointment() {
     e.preventDefault();
 
     if (!appointment.patient_id || !appointment.doctor_id) {
-      alert("Please select both a patient and a doctor.");
+      toast.error("Please select both a patient and a doctor.");
       return;
     }
 
     if (appointment.appointment_date < today) {
-      alert("Cannot save an appointment for a past date.");
+      toast.error("Cannot save an appointment for a past date.");
       return;
     }
 
     if (!appointment.appointment_time) {
-      alert("Please select an appointment time.");
+      toast.error("Please select an appointment time.");
       return;
     }
 
@@ -95,7 +96,7 @@ function EditAppointment() {
       isExpiredAppointment(originalAppointment) &&
       appointment.status !== originalAppointment.status
     ) {
-      alert("Status update is not allowed for expired appointments.");
+      toast.error("Status update is not allowed for expired appointments.");
       return;
     }
 
@@ -112,11 +113,11 @@ function EditAppointment() {
     setSaving(false);
 
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
       return;
     }
 
-    alert("Appointment updated successfully");
+    toast.success("Appointment updated successfully");
     navigate("/appointments");
   };
 

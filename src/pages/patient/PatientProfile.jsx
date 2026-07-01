@@ -8,6 +8,7 @@ import {
   getPatientByUserId,
   updatePatient,
 } from "../../services/patientService";
+import toast from "react-hot-toast";
 
 function PatientProfile() {
   const { user } = useAuth();
@@ -86,7 +87,7 @@ function PatientProfile() {
     e.preventDefault();
 
     if (!patientId) {
-      alert("Patient profile not found.");
+      toast.error("Patient profile not found.");
       return;
     }
 
@@ -106,7 +107,7 @@ function PatientProfile() {
       return;
     }
 
-    alert("Profile updated successfully");
+    toast.success("Profile updated successfully");
     fetchPatient();
   };
 
@@ -114,7 +115,7 @@ function PatientProfile() {
     e.preventDefault();
 
     if (security.newPassword !== security.confirmPassword) {
-      alert("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
@@ -133,7 +134,7 @@ function PatientProfile() {
       newPassword: "",
       confirmPassword: "",
     });
-    alert("Password updated successfully");
+    toast.success("Password updated successfully");
   };
 
   return (

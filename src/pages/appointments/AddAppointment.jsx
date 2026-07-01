@@ -6,6 +6,7 @@ import {
   getAppointmentDoctors,
   getAppointmentPatients,
 } from "../../services/appointmentService";
+import toast from "react-hot-toast";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -55,17 +56,17 @@ function AddAppointment() {
     e.preventDefault();
 
     if (!appointment.patient_id || !appointment.doctor_id) {
-      alert("Please select both a patient and a doctor.");
+      toast.error("Please select both a patient and a doctor.");
       return;
     }
 
     if (appointment.appointment_date < today) {
-      alert("Cannot add an appointment for a past date.");
+      toast.error("Cannot add an appointment for a past date.");
       return;
     }
 
     if (!appointment.appointment_time) {
-      alert("Please select an appointment time.");
+      toast.error("Please select an appointment time.");
       return;
     }
 
@@ -82,11 +83,11 @@ function AddAppointment() {
     setSaving(false);
 
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
       return;
     }
 
-    alert("Appointment added successfully");
+    toast.success("Appointment added successfully");
     navigate("/appointments");
   };
 

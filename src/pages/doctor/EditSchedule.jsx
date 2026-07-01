@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
 import { getDoctorByUserId } from "../../services/doctorService";
+import toast from "react-hot-toast";
 
 function EditSchedule() {
   const { id } = useParams();
@@ -42,7 +43,7 @@ function EditSchedule() {
     }
 
     if (!doctorData) {
-      alert("Doctor profile not found.");
+      toast.error("Doctor profile not found.");
       setLoading(false);
       navigate("/doctor/schedules");
       return;
@@ -63,7 +64,7 @@ function EditSchedule() {
     }
 
     if (!scheduleData) {
-      alert("Schedule not found or you do not have permission to edit it.");
+      toast.error("Schedule not found or you do not have permission to edit it.");
       setLoading(false);
       navigate("/doctor/schedules");
       return;
@@ -94,17 +95,17 @@ function EditSchedule() {
     e.preventDefault();
 
     if (!doctor?.id) {
-      alert("Doctor profile not found.");
+      toast.error("Doctor profile not found.");
       return;
     }
 
     if (schedule.available_date < today) {
-      alert("Cannot select a past date.");
+      toast.error("Cannot select a past date.");
       return;
     }
 
     if (schedule.start_time >= schedule.end_time) {
-      alert("End time must be after start time.");
+      toast.error("End time must be after start time.");
       return;
     }
 
@@ -128,7 +129,7 @@ function EditSchedule() {
       return;
     }
 
-    alert("Schedule updated successfully");
+    toast.success("Schedule updated successfully");
     navigate("/doctor/schedules");
   };
 

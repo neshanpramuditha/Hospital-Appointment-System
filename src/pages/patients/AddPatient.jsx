@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Save, UserRound } from "lucide-react";
 import { isSupabaseConfigured } from "../../services/supabase";
 import { createPatientAccount } from "../../services/patientService";
+import toast from "react-hot-toast";
 
 function AddPatient() {
   const navigate = useNavigate();
@@ -29,12 +30,12 @@ function AddPatient() {
     e.preventDefault();
 
     if (!isSupabaseConfigured) {
-      alert("Supabase is not configured yet.");
+      toast.error("Supabase is not configured yet.");
       return;
     }
 
     if (patient.password !== patient.confirm_password) {
-      alert("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
@@ -49,10 +50,10 @@ function AddPatient() {
         password: patient.password,
       });
 
-      alert("Patient added successfully");
+      toast.success("Patient added successfully");
       navigate("/patients");
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
     } finally {
       setSaving(false);
     }

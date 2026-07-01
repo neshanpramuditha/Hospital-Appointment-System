@@ -12,6 +12,7 @@ import {
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
 import { getPatientByUserId } from "../../services/patientService";
+import toast from "react-hot-toast";
 
 function BookAppointment() {
   const { doctorId } = useParams();
@@ -49,7 +50,7 @@ function BookAppointment() {
     }
 
     if (!patientData) {
-      alert("Patient profile not found for this account.");
+      toast.error("Patient profile not found for this account.");
       setLoading(false);
       return;
     }
@@ -116,12 +117,12 @@ function BookAppointment() {
     e.preventDefault();
 
     if (!patientId) {
-      alert("Patient profile not found.");
+      toast.error("Patient profile not found.");
       return;
     }
 
     if (!formData.schedule_id) {
-      alert("Please select an available schedule.");
+      toast.error("Please select an available schedule.");
       return;
     }
 
@@ -144,7 +145,7 @@ function BookAppointment() {
       return;
     }
 
-    alert("Appointment booked successfully");
+    toast.success("Appointment booked successfully");
     navigate("/patient/appointments");
   };
 
