@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "../../services/supabase";
+import {
+  addAppointment,
+  getAppointmentDoctors,
+  getAppointmentPatients,
+} from "../../services/appointmentService";
+
+const today = new Date().toISOString().slice(0, 10);
 
 function AddAppointment() {
   const navigate = useNavigate();
@@ -20,34 +26,11 @@ function AddAppointment() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchFormData();
-  }, []);
-
   const fetchFormData = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-
-    const { data: patientData, error: patientError } = await supabase
-      .from("patients")
-      .select("id, full_name, phone")
-      .order("full_name", { ascending: true });
-
-    const { data: doctorData, error: doctorError } = await supabase
-      .from("doctors")
-      .select(`
-        id,
-        full_name,
-        specializations (
-          id,
-          name
-        )
-      `)
-      .order("full_name", { ascending: true });
+    const { data: patientData, error: patientError } = await getAppointmentPatients();
+    const { data: doctorData, error: doctorError } = await getAppointmentDoctors();
 
     if (patientError) alert(patientError.message);
     if (doctorError) alert(doctorError.message);
@@ -56,6 +39,10 @@ function AddAppointment() {
     setDoctors(doctorData || []);
     setLoading(false);
   };
+
+  useEffect(() => {
+    Promise.resolve().then(fetchFormData);
+  }, []);
 
   const handleChange = (e) => {
     setAppointment({
@@ -67,17 +54,30 @@ function AddAppointment() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!appointment.patient_id || !appointment.doctor_id) {
+      alert("Please select both a patient and a doctor.");
+      return;
+    }
+
+    if (appointment.appointment_date < today) {
+      alert("Cannot add an appointment for a past date.");
+      return;
+    }
+
+    if (!appointment.appointment_time) {
+      alert("Please select an appointment time.");
+      return;
+    }
+
     setSaving(true);
 
-    const { error } = await supabase.from("appointments").insert([
-      {
-        patient_id: appointment.patient_id,
-        doctor_id: appointment.doctor_id,
-        appointment_date: appointment.appointment_date,
-        appointment_time: appointment.appointment_time,
-        status: appointment.status,
-      },
-    ]);
+    const { error } = await addAppointment({
+      patient_id: appointment.patient_id,
+      doctor_id: appointment.doctor_id,
+      appointment_date: appointment.appointment_date,
+      appointment_time: appointment.appointment_time,
+      status: appointment.status,
+    });
 
     setSaving(false);
 
@@ -186,6 +186,7 @@ function AddAppointment() {
                 type="date"
                 value={appointment.appointment_date}
                 onChange={handleChange}
+                min={today}
                 required
               />
 
@@ -241,7 +242,7 @@ function AddAppointment() {
   );
 }
 
-function Input({ label, name, value, onChange, type = "text", required }) {
+function Input({ label, name, value, onChange, type = "text", min, required }) {
   return (
     <div>
       <label className="mb-2 block text-sm font-semibold text-gray-700">
@@ -253,6 +254,7 @@ function Input({ label, name, value, onChange, type = "text", required }) {
         name={name}
         value={value}
         onChange={onChange}
+        min={min}
         required={required}
         className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
       />
