@@ -13,6 +13,7 @@ import {
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
 import { getPatientByUserId } from "../../services/patientService";
+import toast from "react-hot-toast";
 
 function MyAppointments() {
   const { user } = useAuth();
@@ -125,7 +126,7 @@ function MyAppointments() {
     }
 
     if (!patientId) {
-      alert("Patient profile not found.");
+      toast.error("Patient profile not found.");
       return;
     }
 

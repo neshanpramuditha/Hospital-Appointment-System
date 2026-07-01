@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarPlus, Save } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
 import { getDoctorByUserId } from "../../services/doctorService";
+import toast from "react-hot-toast";
 
 function AddSchedule() {
   const navigate = useNavigate();
@@ -58,17 +59,17 @@ function AddSchedule() {
     e.preventDefault();
 
     if (!doctor?.id) {
-      alert("Doctor profile not found.");
+      toast.error("Doctor profile not found.");
       return;
     }
 
     if (schedule.available_date < today) {
-      alert("Cannot add a schedule for a past date.");
+      toast.error("Cannot add a schedule for a past date.");
       return;
     }
 
     if (schedule.start_time >= schedule.end_time) {
-      alert("End time must be after start time.");
+      toast.error("End time must be after start time.");
       return;
     }
 
@@ -86,11 +87,11 @@ function AddSchedule() {
     setSaving(false);
 
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
       return;
     }
 
-    alert("Schedule added successfully");
+    toast.success("Schedule added successfully");
     navigate("/doctor/schedules");
   };
 

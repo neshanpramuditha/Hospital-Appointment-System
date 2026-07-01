@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, Save, UserRound } from "lucide-react";
 import { isSupabaseConfigured } from "../../services/supabase";
 import { getPatientById, updatePatient } from "../../services/patientService";
+import toast from "react-hot-toast";
 
 function EditPatient() {
   const { id } = useParams();
@@ -57,7 +58,7 @@ function EditPatient() {
     e.preventDefault();
 
     if (!isSupabaseConfigured) {
-      alert("Supabase is not configured yet.");
+      toast.error("Supabase is not configured yet.");
       return;
     }
 
@@ -77,7 +78,7 @@ function EditPatient() {
       return;
     }
 
-    alert("Patient updated successfully");
+    toast.success("Patient updated successfully");
     navigate("/patients");
   };
 

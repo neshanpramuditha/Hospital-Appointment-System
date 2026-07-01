@@ -5,6 +5,7 @@ import { Calendar, Clock, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
 import { getDoctorByUserId } from "../../services/doctorService";
+import toast from "react-hot-toast";
 
 function MySchedule() {
   const { user } = useAuth();
@@ -84,7 +85,7 @@ function MySchedule() {
     if (!window.confirm("Are you sure you want to delete this schedule?")) return;
 
     if (!doctorId) {
-      alert("Doctor profile not found.");
+      toast.error("Doctor profile not found.");
       return;
     }
 

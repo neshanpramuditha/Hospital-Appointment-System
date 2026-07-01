@@ -8,6 +8,7 @@ import {
   getDoctorByUserId,
   updateDoctor,
 } from "../../services/doctorService";
+import toast from "react-hot-toast";
 
 function DoctorProfile() {
   const { user } = useAuth();
@@ -102,7 +103,7 @@ function DoctorProfile() {
     e.preventDefault();
 
     if (!doctorId) {
-      alert("Doctor profile not found.");
+      toast.error("Doctor profile not found.");
       return;
     }
 
@@ -122,7 +123,7 @@ function DoctorProfile() {
       return;
     }
 
-    alert("Doctor profile updated successfully");
+    toast.success("Doctor profile updated successfully");
     fetchData();
   };
 
@@ -130,12 +131,12 @@ function DoctorProfile() {
     e.preventDefault();
 
     if (passwordData.new_password.length < 6) {
-      alert("Password must be at least 6 characters.");
+      toast.error("Password must be at least 6 characters.");
       return;
     }
 
     if (passwordData.new_password !== passwordData.confirm_password) {
-      alert("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
@@ -150,7 +151,7 @@ function DoctorProfile() {
       return;
     }
 
-    alert("Password changed successfully");
+    toast.success("Password changed successfully");
 
     setPasswordData({
       new_password: "",

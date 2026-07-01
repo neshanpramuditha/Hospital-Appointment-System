@@ -13,6 +13,7 @@ import {
 import { isSupabaseConfigured, supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
 import { getDoctorByUserId } from "../../services/doctorService";
+import toast from "react-hot-toast";
 
 function AppointmentDetails() {
   const { id } = useParams();
@@ -115,7 +116,7 @@ function AppointmentDetails() {
     if (!appointment?.id) return;
 
     if (displayStatus(appointment) === "expired") {
-      alert("Expired appointments cannot be updated.");
+      toast.error("Expired appointments cannot be updated.");
       return;
     }
 
@@ -130,7 +131,7 @@ function AppointmentDetails() {
     setUpdating(false);
 
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
       return;
     }
 
