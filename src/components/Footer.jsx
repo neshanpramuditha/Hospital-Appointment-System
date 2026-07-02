@@ -35,6 +35,11 @@ const stats = [
   { num: "100+", label: "Clinics"      },
 ];
 
+const handleSendEmail = () => {
+  window.location.href =
+    "mailto:clinexa.appointment@gmail.com? subject=Customer Inquiry &body=Hello Clinexa Team, I would like to inquire about your services. Please provide me with more information. Thank you.";
+};
+
 export default function Footer() {
   return (
     <footer
@@ -188,7 +193,7 @@ export default function Footer() {
       {/* Body */}
       <div className="max-w-6xl mx-auto px-6 md:px-12 pt-14 pb-10 relative z-10">
 
-        {/* Row 1 — Brand + Newsletter */}
+        {/* Row 1 - Brand + Newsletter */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12 items-start">
 
           {/* Brand */}
@@ -235,18 +240,19 @@ export default function Footer() {
               Stay informed
             </p>
             <h3 className="font-extrabold text-base mb-1 text-white">
-              Health tips in your inbox
+              Contact us by emails
             </h3>
             <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.50)" }}>
-              Appointment reminders, wellness articles, and CLINEXA updates.
+              If you have any inquiries or require further assistance.
             </p>
             <div className="flex gap-2">
               <input type="email" placeholder="your@email.com" className="nl-input" />
               <button
+                onClick={handleSendEmail}
                 className="flex-shrink-0 px-5 py-2.5 rounded-xl text-white text-xs font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
                 style={{ background: "linear-gradient(90deg,#02C39A,#028090)" }}
               >
-                Subscribe
+                Send
               </button>
             </div>
           </div>
