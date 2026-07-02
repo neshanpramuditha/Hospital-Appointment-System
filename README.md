@@ -52,6 +52,7 @@ The application improves the efficiency of hospital operations by reducing manua
 * GitHub
 * npm
 * Google Cloud Console (OAuth)
+* EmailJs (For Email Server)
 * Figma (UI Design)
 
 ---
