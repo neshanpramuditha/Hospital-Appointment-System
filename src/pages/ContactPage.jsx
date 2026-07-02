@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import Footer from "../components/Footer";
+import toast from "react-hot-toast";
+import { sendContactEmail } from "../services/emailService";
 
 // Hooks
 function useReveal(threshold = 0.12) {
@@ -40,7 +42,7 @@ const contactCards = [
     ),
     label: "Phone",
     value: "+94 11 234 5678",
-    sub: "Mon – Fri, 8 AM – 8 PM",
+    sub: "Mon - Fri, 8 AM -8 PM",
     color: "#02C39A",
   },
   {
@@ -50,7 +52,7 @@ const contactCards = [
       </svg>
     ),
     label: "Email",
-    value: "hello@clinexa.health",
+    value: "clinexa@gmail.com",
     sub: "We reply within 24 hours",
     color: "#05668D",
   },
@@ -73,7 +75,7 @@ const contactCards = [
       </svg>
     ),
     label: "Working Hours",
-    value: "8 AM – 10 PM",
+    value: "8 AM - 10 PM",
     sub: "All days including holidays",
     color: "#02C39A",
   },
@@ -155,10 +157,31 @@ export default function ContactPage() {
     transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+// Form submission handler
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    await sendContactEmail(form);
+
+    toast.success("Message sent successfully!");
+
     setSent(true);
-  };
+
+    setForm({
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+    });
+  } catch (error) {
+    console.error(error);
+
+    toast.error(
+      "Failed to send message. Please try again."
+    );
+  }
+};
 
   const inputStyle = (field) => ({
     background: "rgba(255,255,255,0.55)",
